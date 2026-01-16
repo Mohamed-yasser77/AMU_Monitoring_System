@@ -1,0 +1,17 @@
+# Documentation and data folder
+Documentation and data/
+
+# Python cache
+__pycache__/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
