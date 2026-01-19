@@ -4,7 +4,21 @@ import { Link } from 'react-router-dom'
 function Landing() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [isFeaturesVisible, setIsFeaturesVisible] = useState(false)
+  const [user, setUser] = useState(null)
   const featuresRef = useRef(null)
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user')
+    if (storedUser) {
+      setUser(JSON.parse(storedUser))
+    }
+  }, [])
+
+  const handleLogout = () => {
+    localStorage.removeItem('user')
+    setUser(null)
+    setMobileMenuOpen(false)
+  }
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -78,18 +92,34 @@ function Landing() {
             </Link>
           </div>
           <div className="hidden lg:flex lg:flex-1 lg:justify-end lg:gap-x-6">
-            <Link
-              to="/login"
-              className="text-sm/6 font-semibold text-gray-900 hover:text-gray-600"
-            >
-              Log in
-            </Link>
-            <Link
-              to="/register"
-              className="rounded-md bg-primary-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
-            >
-              Get started
-            </Link>
+            {user ? (
+              <div className="flex items-center gap-x-6">
+                <span className="text-sm/6 font-semibold text-gray-900">
+                  Welcome, {user.name}
+                </span>
+                <button
+                  onClick={handleLogout}
+                  className="text-sm/6 font-semibold text-gray-900 hover:text-gray-600"
+                >
+                  Log out
+                </button>
+              </div>
+            ) : (
+              <Link
+                to="/login"
+                className="text-sm/6 font-semibold text-gray-900 hover:text-gray-600"
+              >
+                Log in
+              </Link>
+            )}
+            {!user && (
+              <Link
+                to="/register"
+                className="rounded-md bg-primary-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
+              >
+                Get started
+              </Link>
+            )}
           </div>
         </nav>
 
@@ -150,20 +180,36 @@ function Landing() {
                     </Link>
                   </div>
                   <div className="py-6 space-y-2">
-                    <Link
-                      to="/login"
-                      onClick={() => setMobileMenuOpen(false)}
-                      className="-mx-3 block rounded-lg px-3 py-2.5 text-base/7 font-semibold text-gray-900 hover:bg-gray-50"
-                    >
-                      Log in
-                    </Link>
-                    <Link
-                      to="/register"
-                      onClick={() => setMobileMenuOpen(false)}
-                      className="-mx-3 block rounded-lg px-3 py-2.5 text-base/7 font-semibold text-white bg-primary-600 hover:bg-primary-500"
-                    >
-                      Get started
-                    </Link>
+                    {user ? (
+                      <>
+                        <div className="px-3 py-2.5 text-base/7 font-semibold text-gray-900">
+                          Welcome, {user.name}
+                        </div>
+                        <button
+                          onClick={handleLogout}
+                          className="-mx-3 block w-full text-left rounded-lg px-3 py-2.5 text-base/7 font-semibold text-gray-900 hover:bg-gray-50"
+                        >
+                          Log out
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <Link
+                          to="/login"
+                          onClick={() => setMobileMenuOpen(false)}
+                          className="-mx-3 block rounded-lg px-3 py-2.5 text-base/7 font-semibold text-gray-900 hover:bg-gray-50"
+                        >
+                          Log in
+                        </Link>
+                        <Link
+                          to="/register"
+                          onClick={() => setMobileMenuOpen(false)}
+                          className="-mx-3 block rounded-lg px-3 py-2.5 text-base/7 font-semibold text-white bg-primary-600 hover:bg-primary-500"
+                        >
+                          Get started
+                        </Link>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>

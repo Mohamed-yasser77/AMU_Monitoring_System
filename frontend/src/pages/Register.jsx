@@ -60,16 +60,42 @@ function Register() {
     return Object.keys(newErrors).length === 0
   }
 
+  const [success, setSuccess] = useState('')
   const handleSubmit = async (e) => {
     e.preventDefault()
-    
     if (!validate()) {
       return
     }
-    
-    // TODO: Implement API call to backend
-    console.log('Registration attempt:', formData)
-    // navigate('/login')
+    try {
+      const response = await fetch('http://localhost:8000/api/register/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          first_name: formData.firstName,
+          last_name: formData.lastName,
+          email_address: formData.email,
+          password: formData.password,
+        }),
+      })
+      const data = await response.json()
+      if (response.ok) {
+        setSuccess('Registration successful! You can now log in.')
+        setFormData({
+          firstName: '',
+          lastName: '',
+          email: '',
+          password: '',
+          confirmPassword: '',
+        })
+        setTimeout(() => navigate('/login'), 2000)
+      } else {
+        setErrors({ general: data.error || 'Registration failed' })
+      }
+    } catch (error) {
+      setErrors({ general: 'Network error' })
+    }
   }
 
   return (
@@ -84,6 +110,9 @@ function Register() {
       </div>
 
       <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
+        {success && (
+          <p className="mb-4 text-green-600 text-center font-semibold">{success}</p>
+        )}
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -224,6 +253,9 @@ function Register() {
             >
               Create account
             </button>
+            {errors.general && (
+              <p className="mt-2 text-sm text-red-600 text-center">{errors.general}</p>
+            )}
           </div>
         </form>
 
