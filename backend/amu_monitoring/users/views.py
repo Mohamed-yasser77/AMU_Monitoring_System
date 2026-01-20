@@ -20,21 +20,27 @@ class RegisterView(View):
             last_name = data.get('last_name')
             email_address = data.get('email_address')
             password = data.get('password')
+            role = data.get('role')
 
-            if not all([first_name, last_name, email_address, password]):
+            if not all([first_name, last_name, email_address, password, role]):
                 print("Missing fields")
                 return JsonResponse({'error': 'All fields are required.'}, status=400)
+            
+            valid_roles = [choice[0] for choice in User.ROLE_CHOICES]
+            if role not in valid_roles:
+                return JsonResponse({'error': 'Invalid role selected.'}, status=400)
 
             if User.objects.filter(email_address=email_address).exists():
                 print(f"User already exists: {email_address}")
                 return JsonResponse({'error': 'Email already registered.'}, status=400)
 
-            print(f"Creating user: {email_address}")
+            print(f"Creating user: {email_address} with role {role}")
             user = User.objects.create(
                 first_name=first_name,
                 last_name=last_name,
                 email_address=email_address,
-                password=password
+                password=password,
+                role=role
             )
             print(f"User created successfully with ID: {user.id}")
             return JsonResponse({'message': 'User registered successfully.'}, status=201)

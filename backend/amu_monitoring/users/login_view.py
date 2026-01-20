@@ -18,7 +18,12 @@ class LoginView(View):
 
             try:
                 user = User.objects.get(email_address=email_address, password=password)
-                return JsonResponse({'message': 'Login successful.', 'user_name': f"{user.first_name} {user.last_name}"}, status=200)
+                return JsonResponse({
+                    'message': 'Login successful.',
+                    'user_name': f"{user.first_name} {user.last_name}",
+                    'email': user.email_address,
+                    'role': user.role
+                }, status=200)
             except User.DoesNotExist:
                 return JsonResponse({'error': 'Invalid email or password.'}, status=401)
         except Exception as e:

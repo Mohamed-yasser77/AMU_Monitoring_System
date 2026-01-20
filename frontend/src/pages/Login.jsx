@@ -61,8 +61,17 @@ function Login() {
       const data = await response.json()
       if (response.ok) {
         setUserName(data.user_name)
-        localStorage.setItem('user', JSON.stringify({ name: data.user_name }))
-        setTimeout(() => navigate('/'), 1500)
+        localStorage.setItem('user', JSON.stringify({ 
+          name: data.user_name,
+          email: data.email,
+          role: data.role
+        }))
+        
+        if (data.role === 'farmer') {
+          setTimeout(() => navigate('/farmer-dashboard'), 1500)
+        } else {
+          setTimeout(() => navigate('/'), 1500)
+        }
       } else {
         setErrors({ general: data.error || 'Login failed' })
       }

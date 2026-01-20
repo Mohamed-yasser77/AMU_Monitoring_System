@@ -5,6 +5,14 @@ class User(models.Model):
     last_name = models.CharField(max_length=100)
     email_address = models.EmailField(unique=True)
     password = models.CharField(max_length=20)
+    
+    ROLE_CHOICES = [
+        ('farmer', 'Farmer'),
+        ('vet', 'Vet'),
+        ('regulator', 'Regulator'),
+    ]
+    role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='farmer')
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
+    

@@ -8,6 +8,7 @@ function Register() {
     email: '',
     password: '',
     confirmPassword: '',
+    role: 'farmer',
   })
   const [errors, setErrors] = useState({})
   const navigate = useNavigate()
@@ -77,6 +78,7 @@ function Register() {
           last_name: formData.lastName,
           email_address: formData.email,
           password: formData.password,
+          role: formData.role,
         }),
       })
       const data = await response.json()
@@ -165,6 +167,25 @@ function Register() {
                   <p className="mt-2 text-sm text-red-600">{errors.lastName}</p>
                 )}
               </div>
+            </div>
+          </div>
+
+          <div>
+            <label htmlFor="role" className="block text-sm/6 font-medium text-gray-900">
+              Role
+            </label>
+            <div className="mt-2">
+              <select
+                id="role"
+                name="role"
+                value={formData.role}
+                onChange={handleChange}
+                className="block w-full rounded-md px-3 py-1.5 text-base text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm/6"
+              >
+                <option value="farmer">Farmer</option>
+                <option value="vet">Vet</option>
+                <option value="regulator">Regulator</option>
+              </select>
             </div>
           </div>
 
