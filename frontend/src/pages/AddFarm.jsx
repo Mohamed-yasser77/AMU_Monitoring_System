@@ -22,11 +22,7 @@ function AddFarm() {
     total_animals: '',
     avg_weight: '',
     avg_feed_consumption: '',
-    avg_water_consumption: '',
-    antibiotic_used: false,
-    antibiotic_name: '',
-    antibiotic_reason: '',
-    treated_for: ''
+    avg_water_consumption: ''
   })
 
   const handleChange = (e) => {
@@ -133,65 +129,6 @@ function AddFarm() {
                         <input type="number" step="0.01" name="avg_water_consumption" required value={formData.avg_water_consumption} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm border p-2" />
                     </div>
                 </div>
-
-                {/* Antibiotics */}
-                <div>
-                    <label className="block text-sm font-medium text-gray-700">Antibiotic Used?</label>
-                    <div className="mt-2 space-x-4">
-                        <label className="inline-flex items-center">
-                            <input type="checkbox" name="antibiotic_used" checked={formData.antibiotic_used} onChange={handleChange} className="form-checkbox text-primary-600 h-5 w-5" />
-                            <span className="ml-2">Yes</span>
-                        </label>
-                    </div>
-                </div>
-
-                {formData.antibiotic_used && (
-                    <div className="bg-gray-50 p-4 rounded-md border border-gray-200 space-y-4">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700">Antibiotic Name</label>
-                            <select name="antibiotic_name" value={formData.antibiotic_name} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm border p-2">
-                                <option value="">Select Antibiotic</option>
-                                <option value="spectromycin">Spectromycin</option>
-                            </select>
-                        </div>
-                        
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700">Reason</label>
-                            <div className="mt-2 space-y-2">
-                                <label className="inline-flex items-center mr-4">
-                                    <input type="radio" name="antibiotic_reason" value="treat_disease" onChange={handleChange} className="form-radio text-primary-600" />
-                                    <span className="ml-2">Treat Disease</span>
-                                </label>
-                                <label className="inline-flex items-center mr-4">
-                                    <input type="radio" name="antibiotic_reason" value="prophylactic" onChange={handleChange} className="form-radio text-primary-600" />
-                                    <span className="ml-2">Prophylactic</span>
-                                </label>
-                                <label className="inline-flex items-center">
-                                    <input type="radio" name="antibiotic_reason" value="other" onChange={handleChange} className="form-radio text-primary-600" />
-                                    <span className="ml-2">Other</span>
-                                </label>
-                            </div>
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700">Treated For</label>
-                            <div className="mt-2 space-y-2">
-                                <label className="inline-flex items-center mr-4">
-                                    <input type="radio" name="treated_for" value="enteric" onChange={handleChange} className="form-radio text-primary-600" />
-                                    <span className="ml-2">Enteric</span>
-                                </label>
-                                <label className="inline-flex items-center mr-4">
-                                    <input type="radio" name="treated_for" value="respiratory" onChange={handleChange} className="form-radio text-primary-600" />
-                                    <span className="ml-2">Respiratory</span>
-                                </label>
-                                <label className="inline-flex items-center">
-                                    <input type="radio" name="treated_for" value="reproductive" onChange={handleChange} className="form-radio text-primary-600" />
-                                    <span className="ml-2">Reproductive</span>
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                )}
 
                 <div className="flex justify-end">
                     <button type="submit" className="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">

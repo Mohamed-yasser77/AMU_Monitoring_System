@@ -43,11 +43,7 @@ class FarmListCreateView(View):
                 total_animals=data.get('total_animals'),
                 avg_weight=data.get('avg_weight'),
                 avg_feed_consumption=data.get('avg_feed_consumption'),
-                avg_water_consumption=data.get('avg_water_consumption'),
-                antibiotic_used=data.get('antibiotic_used', False),
-                antibiotic_name=data.get('antibiotic_name'),
-                antibiotic_reason=data.get('antibiotic_reason'),
-                treated_for=data.get('treated_for')
+                avg_water_consumption=data.get('avg_water_consumption')
             )
             return JsonResponse({'message': 'Farm created successfully', 'id': farm.id}, status=201)
         except User.DoesNotExist:
@@ -81,18 +77,7 @@ class FarmDetailView(View):
             farm.avg_weight = data.get('avg_weight', farm.avg_weight)
             farm.avg_feed_consumption = data.get('avg_feed_consumption', farm.avg_feed_consumption)
             farm.avg_water_consumption = data.get('avg_water_consumption', farm.avg_water_consumption)
-            farm.antibiotic_used = data.get('antibiotic_used', farm.antibiotic_used)
             
-            # Handle conditional fields logic if needed, or just update directly
-            farm.antibiotic_name = data.get('antibiotic_name', farm.antibiotic_name)
-            farm.antibiotic_reason = data.get('antibiotic_reason', farm.antibiotic_reason)
-            farm.treated_for = data.get('treated_for', farm.treated_for)
-            
-            if not farm.antibiotic_used:
-                farm.antibiotic_name = None
-                farm.antibiotic_reason = None
-                farm.treated_for = None
-
             farm.save()
             return JsonResponse({'message': 'Farm updated successfully'}, status=200)
         except Farm.DoesNotExist:

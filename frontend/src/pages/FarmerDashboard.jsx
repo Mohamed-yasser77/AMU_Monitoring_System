@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 
 function FarmerDashboard() {
   const [farms, setFarms] = useState([])
+  const [activeTreatments, setActiveTreatments] = useState([])
   const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
   const user = JSON.parse(localStorage.getItem('user'))
@@ -22,12 +23,27 @@ function FarmerDashboard() {
         }
       } catch (error) {
         console.error('Error fetching farms:', error)
-      } finally {
-        setLoading(false)
       }
     }
 
-    fetchFarms()
+    const fetchTreatments = async () => {
+        try {
+            const response = await fetch(`http://localhost:8000/api/treatments/?email=${user.email}`)
+            if (response.ok) {
+                const data = await response.json()
+                setActiveTreatments(data)
+            }
+        } catch (error) {
+            console.error('Error fetching treatments:', error)
+        }
+    }
+
+    const fetchData = async () => {
+        await Promise.all([fetchFarms(), fetchTreatments()])
+        setLoading(false)
+    }
+
+    fetchData()
   }, [navigate, user?.email, user?.role])
 
   const handleLogout = () => {
@@ -65,7 +81,13 @@ function FarmerDashboard() {
             </div>
           ) : (
             <div>
-                <div className="flex justify-end mb-4">
+                <div className="flex justify-end mb-4 gap-4">
+                    <Link
+                      to="/log-treatment"
+                      className="inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+                    >
+                      Log Treatment
+                    </Link>
                     <Link
                       to="/add-farm"
                       className="inline-flex items-center rounded-md bg-primary-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-500"
@@ -100,6 +122,40 @@ function FarmerDashboard() {
                 </div>
             </div>
           )}
+
+        <div className="mt-8 border-t border-gray-200 pt-8">
+            <h2 className="text-lg font-medium text-gray-900 mb-4">Recent Active Treatments</h2>
+            {activeTreatments.length > 0 ? (
+                <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
+                    <table className="min-w-full divide-y divide-gray-300">
+                    <thead className="bg-gray-50">
+                        <tr>
+                        <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">Farm</th>
+                        <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Antibiotic</th>
+                        <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Reason</th>
+                        <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Date</th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200 bg-white">
+                        {activeTreatments.map((treatment) => (
+                        <tr key={treatment.id}>
+                            <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
+                            {treatment.farm__name} ({treatment.farm__farm_number})
+                            </td>
+                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{treatment.antibiotic_name}</td>
+                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 capitalize">
+                                {treatment.reason.replace('_', ' ')} / {treatment.treated_for}
+                            </td>
+                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{treatment.date}</td>
+                        </tr>
+                        ))}
+                    </tbody>
+                    </table>
+                </div>
+            ) : (
+                <p className="text-sm text-gray-500">No active treatments found.</p>
+            )}
+        </div>
         </div>
       </main>
     </div>
