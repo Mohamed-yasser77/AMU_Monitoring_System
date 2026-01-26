@@ -25,5 +25,6 @@ urlpatterns = [
     path('api/login/', LoginView.as_view(), name='login'),
     path('api/', include('farms.urls')),
     path('api/treatments/', include('treatments.urls')),
+    path('api/reference/', include('reference_data.urls')),
 ]
 

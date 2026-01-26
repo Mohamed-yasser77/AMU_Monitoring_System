@@ -5,6 +5,7 @@ function LogTreatment() {
   const navigate = useNavigate()
   const user = JSON.parse(localStorage.getItem('user'))
   const [farms, setFarms] = useState([])
+  const [antibiotics, setAntibiotics] = useState([])
   const [formData, setFormData] = useState({
     farm: '',
     antibiotic_name: '',
@@ -39,6 +40,28 @@ function LogTreatment() {
 
     fetchFarms()
   }, [navigate, user?.email, user?.role])
+
+  useEffect(() => {
+    if (formData.farm && farms.length > 0) {
+      const selectedFarm = farms.find(f => f.id == formData.farm)
+      if (selectedFarm && selectedFarm.species_type) {
+        fetch(`http://localhost:8000/api/reference/molecules/?species=${selectedFarm.species_type}`)
+          .then(res => res.json())
+          .then(data => {
+             if (Array.isArray(data)) {
+                 setAntibiotics(data)
+                 setFormData(prev => ({ ...prev, antibiotic_name: '' }))
+             } else {
+                console.error('Error fetching molecules:', data)
+                setAntibiotics([])
+            }
+          })
+          .catch(err => console.error('Error fetching molecules:', err))
+      }
+    } else {
+        setAntibiotics([])
+    }
+  }, [formData.farm, farms])
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -109,16 +132,21 @@ function LogTreatment() {
               <label htmlFor="antibiotic_name" className="block text-sm font-medium text-gray-700">
                 Antibiotic Name
               </label>
-              <input
+              <select
                 id="antibiotic_name"
                 name="antibiotic_name"
-                type="text"
                 required
-                className="relative block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-primary-500 focus:outline-none focus:ring-primary-500 sm:text-sm"
-                placeholder="e.g. Spectromycin"
+                className="mt-1 block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-primary-500 focus:outline-none focus:ring-primary-500 sm:text-sm"
                 value={formData.antibiotic_name}
                 onChange={handleChange}
-              />
+              >
+                <option value="">Select antibiotic</option>
+                {antibiotics.map((antibiotic) => (
+                  <option key={antibiotic.id} value={antibiotic.name}>
+                    {antibiotic.name}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div>
