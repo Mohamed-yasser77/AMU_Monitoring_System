@@ -8,11 +8,16 @@ class Farm(models.Model):
     ]
 
     SPECIES_CHOICES = [
-        ('avian', 'Avian (Poultry/Birds)'),
-        ('bovine', 'Bovine (Cattle)'),
-        ('suine', 'Suine (Pigs/Swine)'),
-        ('caprine', 'Caprine (Goats)'),
-        ('ovine', 'Ovine (Sheep)'),
+        ('AVI', 'Avian (Poultry/Birds)'),
+        ('BOV', 'Bovine (Cattle)'),
+        ('SUI', 'Suine (Pigs/Swine)'),
+        ('CAP', 'Caprine (Goats)'),
+        ('OVI', 'Ovine (Sheep)'),
+        ('EQU', 'Equine (Horses)'),
+        ('LEP', 'Leporine (Rabbits)'),
+        ('PIS', 'Pisces (Fish)'),
+        ('CAM', 'Camelids (Camels)'),
+        ('API', 'Apiculture (Bees)'),
     ]
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='farms')

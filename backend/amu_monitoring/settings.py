@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'amu_monitoring.users',
     'farms',
     'treatments',
+    'reference_data',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',

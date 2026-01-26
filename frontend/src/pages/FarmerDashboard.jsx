@@ -1,6 +1,19 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
+const speciesMapping = {
+    'AVI': 'Avian (Poultry/Birds)',
+    'BOV': 'Bovine (Cattle)',
+    'SUI': 'Suine (Pigs/Swine)',
+    'CAP': 'Caprine (Goats)',
+    'OVI': 'Ovine (Sheep)',
+    'EQU': 'Equine (Horses)',
+    'LEP': 'Leporine (Rabbits)',
+    'PIS': 'Pisces (Fish)',
+    'CAM': 'Camelids (Camels)',
+    'API': 'Apiculture (Bees)'
+}
+
 function FarmerDashboard() {
   const [farms, setFarms] = useState([])
   const [activeTreatments, setActiveTreatments] = useState([])
@@ -101,7 +114,7 @@ function FarmerDashboard() {
                       <div className="mb-4">
                         <p className="text-sm font-medium text-gray-900">{farm.name}</p>
                         <p className="truncate text-sm text-gray-500">ID: {farm.farm_number}</p>
-                        <p className="truncate text-sm text-gray-500">Species: {farm.species_type}</p>
+                        <p className="truncate text-sm text-gray-500">Species: {speciesMapping[farm.species_type] || farm.species_type}</p>
                       </div>
                       <div className="flex gap-2">
                         <Link

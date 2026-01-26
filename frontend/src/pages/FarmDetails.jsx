@@ -1,6 +1,19 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 
+const speciesMapping = {
+    'AVI': 'Avian (Poultry/Birds)',
+    'BOV': 'Bovine (Cattle)',
+    'SUI': 'Suine (Pigs/Swine)',
+    'CAP': 'Caprine (Goats)',
+    'OVI': 'Ovine (Sheep)',
+    'EQU': 'Equine (Horses)',
+    'LEP': 'Leporine (Rabbits)',
+    'PIS': 'Pisces (Fish)',
+    'CAM': 'Camelids (Camels)',
+    'API': 'Apiculture (Bees)'
+}
+
 function FarmDetails() {
   const navigate = useNavigate()
   const { id } = useParams()
@@ -85,7 +98,7 @@ function FarmDetails() {
             </div>
             <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
               <dt className="text-sm font-medium text-gray-500">Species</dt>
-              <dd className="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0 capitalize">{farm.species_type}</dd>
+              <dd className="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">{speciesMapping[farm.species_type] || farm.species_type}</dd>
             </div>
             <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
               <dt className="text-sm font-medium text-gray-500">Total Animals</dt>

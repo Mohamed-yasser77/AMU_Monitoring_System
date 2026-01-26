@@ -2,11 +2,16 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 const speciesOptions = [
-  { value: 'avian', label: 'Avian (Poultry/Birds)', code: 'AVI' },
-  { value: 'bovine', label: 'Bovine (Cattle)', code: 'BOV' },
-  { value: 'suine', label: 'Suine (Pigs/Swine)', code: 'POR' },
-  { value: 'caprine', label: 'Caprine (Goats)', code: 'CAP' },
-  { value: 'ovine', label: 'Ovine (Sheep)', code: 'OVI' },
+  { value: 'AVI', label: 'Avian (Poultry/Birds)' },
+  { value: 'BOV', label: 'Bovine (Cattle)' },
+  { value: 'SUI', label: 'Suine (Pigs/Swine)' },
+  { value: 'CAP', label: 'Caprine (Goats)' },
+  { value: 'OVI', label: 'Ovine (Sheep)' },
+  { value: 'EQU', label: 'Equine (Horses)' },
+  { value: 'LEP', label: 'Leporine (Rabbits)' },
+  { value: 'PIS', label: 'Pisces (Fish)' },
+  { value: 'CAM', label: 'Camelids (Camels)' },
+  { value: 'API', label: 'Apiculture (Bees)' },
 ]
 
 function AddFarm() {
