@@ -64,11 +64,14 @@ function Login() {
         localStorage.setItem('user', JSON.stringify({ 
           name: data.user_name,
           email: data.email,
-          role: data.role
+          role: data.role,
+          token: data.token
         }))
         
         if (data.role === 'farmer') {
           setTimeout(() => navigate('/farmer-dashboard'), 1500)
+        } else if (data.role === 'vet') {
+          setTimeout(() => navigate('/vet-dashboard'), 1500)
         } else {
           setTimeout(() => navigate('/'), 1500)
         }

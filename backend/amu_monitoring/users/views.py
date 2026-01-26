@@ -3,6 +3,7 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views import View
 from .models import User
+from django.contrib.auth.hashers import make_password
 import json
 import logging
 
@@ -35,11 +36,12 @@ class RegisterView(View):
                 return JsonResponse({'error': 'Email already registered.'}, status=400)
 
             print(f"Creating user: {email_address} with role {role}")
+            hashed_password = make_password(password)
             user = User.objects.create(
                 first_name=first_name,
                 last_name=last_name,
                 email_address=email_address,
-                password=password,
+                password=hashed_password,
                 role=role
             )
             print(f"User created successfully with ID: {user.id}")
