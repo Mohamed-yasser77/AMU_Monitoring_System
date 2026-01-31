@@ -65,7 +65,9 @@ function Login() {
           name: data.user_name,
           email: data.email,
           role: data.role,
-          token: data.token
+          token: data.token,
+          profile_completed: data.profile_completed,
+          profile: data.profile
         }))
         
         if (data.role === 'farmer') {

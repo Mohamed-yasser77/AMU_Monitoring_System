@@ -36,6 +36,7 @@ class FarmListCreateView(View):
                 user=user,
                 name=data.get('name'),
                 state=data.get('state'),
+                district=data.get('district'),
                 village=data.get('village'),
                 farm_number=data.get('farm_number'),
                 farm_type=data.get('farm_type'),
@@ -69,6 +70,7 @@ class FarmDetailView(View):
             
             farm.name = data.get('name', farm.name)
             farm.state = data.get('state', farm.state)
+            farm.district = data.get('district', farm.district)
             farm.village = data.get('village', farm.village)
             farm.farm_number = data.get('farm_number', farm.farm_number)
             farm.farm_type = data.get('farm_type', farm.farm_type)

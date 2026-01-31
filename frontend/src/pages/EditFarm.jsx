@@ -21,7 +21,7 @@ function EditFarm() {
   const [formData, setFormData] = useState({
     name: '',
     state: '',
-    village: '',
+    district: '',
     farm_number: '',
     farm_type: '',
     species_type: '',
@@ -31,6 +31,23 @@ function EditFarm() {
     avg_water_consumption: ''
   })
   const [loading, setLoading] = useState(true)
+
+  const states = [
+    "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Goa", "Gujarat", 
+    "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka", "Kerala", "Madhya Pradesh", 
+    "Maharashtra", "Manipur", "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Punjab", 
+    "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", 
+    "Uttarakhand", "West Bengal"
+  ]
+
+  const tnDistricts = [
+    "Ariyalur", "Chengalpattu", "Chennai", "Coimbatore", "Cuddalore", "Dharmapuri", "Dindigul", 
+    "Erode", "Kallakurichi", "Kanchipuram", "Kanyakumari", "Karur", "Krishnagiri", "Madurai", 
+    "Mayiladuthurai", "Nagapattinam", "Namakkal", "Nilgiris", "Perambalur", "Pudukkottai", 
+    "Ramanathapuram", "Ranipet", "Salem", "Sivaganga", "Tenkasi", "Thanjavur", "Theni", 
+    "Thoothukudi", "Tiruchirappalli", "Tirunelveli", "Tirupathur", "Tiruppur", "Tiruvallur", 
+    "Tiruvannamalai", "Tiruvarur", "Vellore", "Viluppuram", "Virudhunagar"
+  ]
 
   useEffect(() => {
     const fetchFarm = async () => {
@@ -55,10 +72,14 @@ function EditFarm() {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value
-    }))
+    if (name === 'state') {
+        setFormData(prev => ({ ...prev, state: value, district: '' }))
+    } else {
+        setFormData(prev => ({
+        ...prev,
+        [name]: type === 'checkbox' ? checked : value
+        }))
+    }
   }
 
   const handleSubmit = async (e) => {
@@ -104,11 +125,44 @@ function EditFarm() {
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-gray-700">State</label>
-                        <input type="text" name="state" required value={formData.state} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm border p-2" />
+                        <select
+                            name="state"
+                            required
+                            value={formData.state}
+                            onChange={handleChange}
+                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm border p-2"
+                        >
+                            <option value="">Select State</option>
+                            {states.map(state => (
+                                <option key={state} value={state}>{state}</option>
+                            ))}
+                        </select>
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700">Village</label>
-                        <input type="text" name="village" required value={formData.village} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm border p-2" />
+                        <label className="block text-sm font-medium text-gray-700">District</label>
+                        {formData.state === "Tamil Nadu" ? (
+                            <select
+                                name="district"
+                                required
+                                value={formData.district}
+                                onChange={handleChange}
+                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm border p-2"
+                            >
+                                <option value="">Select District</option>
+                                {tnDistricts.map(district => (
+                                    <option key={district} value={district}>{district}</option>
+                                ))}
+                            </select>
+                        ) : (
+                            <input
+                                type="text"
+                                name="district"
+                                required
+                                value={formData.district}
+                                onChange={handleChange}
+                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm border p-2"
+                            />
+                        )}
                     </div>
                 </div>
 

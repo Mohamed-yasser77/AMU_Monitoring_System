@@ -147,6 +147,7 @@ function FarmerDashboard() {
                         <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Antibiotic</th>
                         <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Reason</th>
                         <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Date</th>
+                        <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Status</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200 bg-white">
@@ -160,6 +161,17 @@ function FarmerDashboard() {
                                 {treatment.reason.replace('_', ' ')} / {treatment.treated_for}
                             </td>
                             <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{treatment.date}</td>
+                            <td className="whitespace-nowrap px-3 py-4 text-sm">
+                                <span className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset ${
+                                    treatment.status === 'approved' 
+                                    ? 'bg-green-50 text-green-700 ring-green-600/20' 
+                                    : treatment.status === 'rejected'
+                                    ? 'bg-red-50 text-red-700 ring-red-600/20'
+                                    : 'bg-yellow-50 text-yellow-800 ring-yellow-600/20'
+                                }`}>
+                                    {treatment.status ? treatment.status.charAt(0).toUpperCase() + treatment.status.slice(1) : 'Pending'}
+                                </span>
+                            </td>
                         </tr>
                         ))}
                     </tbody>

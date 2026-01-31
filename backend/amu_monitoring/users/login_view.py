@@ -48,7 +48,14 @@ class LoginView(View):
                     'token': token,
                     'user_name': f"{user.first_name} {user.last_name}",
                     'email': user.email_address,
-                    'role': user.role
+                    'role': user.role,
+                    'profile_completed': all([user.state, user.district, user.address, user.phone_number]),
+                    'profile': {
+                        'state': user.state,
+                        'district': user.district,
+                        'address': user.address,
+                        'phone_number': user.phone_number
+                    }
                 }, status=200)
             except User.DoesNotExist:
                 return JsonResponse({'error': 'Invalid email or password.'}, status=401)
