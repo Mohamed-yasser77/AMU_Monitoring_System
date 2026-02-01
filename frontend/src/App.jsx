@@ -6,6 +6,7 @@ import FarmerDashboard from './pages/FarmerDashboard'
 import AddFarm from './pages/AddFarm'
 import EditFarm from './pages/EditFarm'
 import FarmDetails from './pages/FarmDetails'
+import LearnMore from './pages/LearnMore'
 import LogTreatment from './pages/LogTreatment'
 import VetDashboard from './pages/VetDashboard'
 
@@ -31,6 +32,7 @@ function App() {
         <Route path="/log-treatment" element={<LogTreatment />} />
         <Route path="/edit-farm/:id" element={<EditFarm />} />
         <Route path="/farm-details/:id" element={<FarmDetails />} />
+        <Route path="/learn-more" element={<LearnMore />} />
       </Routes>
     </Router>
   )

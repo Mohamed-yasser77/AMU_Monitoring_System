@@ -249,7 +249,7 @@ function Landing() {
                 Get started
               </Link>
               <Link
-                to="#features"
+                to="/learn-more"
                 className="text-sm font-semibold leading-6 text-gray-900 hover:text-gray-600 transition-colors"
               >
                 Learn more <span aria-hidden="true">→</span>
