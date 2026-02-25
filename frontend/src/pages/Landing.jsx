@@ -26,7 +26,6 @@ function Landing() {
         if (entry.isIntersecting) {
           setIsFeaturesVisible(true)
         } else {
-          // Reset visibility when section leaves viewport to retrigger animation
           setIsFeaturesVisible(false)
         }
       },
@@ -36,13 +35,14 @@ function Landing() {
       }
     )
 
-    if (featuresRef.current) {
-      observer.observe(featuresRef.current)
+    const current = featuresRef.current
+    if (current) {
+      observer.observe(current)
     }
 
     return () => {
-      if (featuresRef.current) {
-        observer.unobserve(featuresRef.current)
+      if (current) {
+        observer.unobserve(current)
       }
     }
   }, [])
@@ -418,4 +418,3 @@ function Landing() {
 }
 
 export default Landing
-

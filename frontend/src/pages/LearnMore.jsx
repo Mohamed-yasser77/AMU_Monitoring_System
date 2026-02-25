@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { 
   ClipboardDocumentCheckIcon, 
@@ -73,12 +73,13 @@ export default function LearnMore() {
       { threshold: 0.1 }
     )
 
-    sectionRefs.current.forEach((section) => {
+    const sections = sectionRefs.current
+    sections.forEach((section) => {
       if (section) observer.observe(section)
     })
 
     return () => {
-      sectionRefs.current.forEach((section) => {
+      sections.forEach((section) => {
         if (section) observer.unobserve(section)
       })
     }
@@ -327,7 +328,7 @@ export default function LearnMore() {
               </p>
               <figure className="border-l-4 border-white pl-6 py-4 bg-primary-800/30 rounded-r-2xl backdrop-blur-sm">
                 <blockquote className="text-xl font-medium leading-8 text-white italic">
-                  "This platform transformed our record-keeping. We reduced our antimicrobial usage by 30% in the first year just by having better data."
+                  &quot;This platform transformed our record-keeping. We reduced our antimicrobial usage by 30% in the first year just by having better data.&quot;
                 </blockquote>
                 <figcaption className="mt-4 flex items-center gap-x-4">
                   <div className="text-sm font-semibold text-white">John Doe</div>

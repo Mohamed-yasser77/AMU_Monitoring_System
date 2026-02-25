@@ -69,11 +69,16 @@ class TreatmentListCreateView(View):
     def post(self, request):
         try:
             data = json.loads(request.body)
+            email = data.get('email')
             farm_id = data.get('farm')
             
             if not farm_id:
                 return JsonResponse({'error': 'Farm ID required'}, status=400)
+            
+            if not email:
+                return JsonResponse({'error': 'User email required'}, status=400)
 
+            user = User.objects.get(email_address=email)
             farm = Farm.objects.get(id=farm_id)
             
             # Auto-assign vet
@@ -90,6 +95,7 @@ class TreatmentListCreateView(View):
             treatment = Treatment.objects.create(
                 farm=farm,
                 vet=assigned_vet,
+                recorded_by=user,
                 status='pending',
                 antibiotic_name=data.get('antibiotic_name'),
                 reason=data.get('reason'),
@@ -98,6 +104,8 @@ class TreatmentListCreateView(View):
             )
             
             return JsonResponse({'message': 'Treatment logged successfully', 'id': treatment.id}, status=201)
+        except User.DoesNotExist:
+            return JsonResponse({'error': 'User not found'}, status=404)
         except Farm.DoesNotExist:
             return JsonResponse({'error': 'Farm not found'}, status=404)
         except Exception as e:

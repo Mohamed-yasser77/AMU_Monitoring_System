@@ -16,7 +16,7 @@ function LogTreatment() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (!user || user.role !== 'farmer') {
+    if (!user || (user.role !== 'farmer' && user.role !== 'data_operator')) {
       navigate('/login')
       return
     }
@@ -39,7 +39,7 @@ function LogTreatment() {
     }
 
     fetchFarms()
-  }, [navigate, user?.email, user?.role])
+  }, [navigate, user])
 
   useEffect(() => {
     if (formData.farm && farms.length > 0) {

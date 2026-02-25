@@ -24,6 +24,7 @@ class Treatment(models.Model):
 
     farm = models.ForeignKey(Farm, on_delete=models.CASCADE, related_name='treatments')
     vet = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='assigned_treatments')
+    recorded_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='treatments_recorded')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     antibiotic_name = models.CharField(max_length=100)
     reason = models.CharField(max_length=20, choices=REASON_CHOICES)

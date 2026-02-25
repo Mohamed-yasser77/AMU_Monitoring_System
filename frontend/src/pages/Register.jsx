@@ -8,7 +8,7 @@ function Register() {
     email: '',
     password: '',
     confirmPassword: '',
-    role: 'farmer',
+    role: 'data_operator',
   })
   const [errors, setErrors] = useState({})
   const navigate = useNavigate()
@@ -182,7 +182,7 @@ function Register() {
                 onChange={handleChange}
                 className="block w-full rounded-md px-3 py-1.5 text-base text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm/6"
               >
-                <option value="farmer">Farmer</option>
+                <option value="data_operator">Data operator</option>
                 <option value="vet">Vet</option>
                 <option value="regulator">Regulator</option>
               </select>

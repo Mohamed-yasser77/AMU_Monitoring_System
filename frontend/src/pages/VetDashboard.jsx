@@ -16,6 +16,10 @@ function VetDashboard() {
     address: '',
     phone_number: ''
   })
+  const [ownerSearch, setOwnerSearch] = useState('')
+  const [owners, setOwners] = useState([])
+  const [selectedOwner, setSelectedOwner] = useState(null)
+  const [ownerDetails, setOwnerDetails] = useState(null)
   
   const navigate = useNavigate()
   const user = JSON.parse(localStorage.getItem('user'))
@@ -42,10 +46,9 @@ function VetDashboard() {
       navigate('/login')
       return
     }
-    
-    // Check if profile is completed based on local storage
+
     if (user.profile_completed) {
-        setProfileCompleted(true)
+      setProfileCompleted(true)
     }
 
     const fetchDrugs = async () => {
@@ -61,25 +64,38 @@ function VetDashboard() {
     }
 
     const fetchPendingTreatments = async () => {
-        try {
-            const response = await fetch(`http://localhost:8000/api/treatments/?vet_email=${user.email}`)
-            if (response.ok) {
-                const data = await response.json()
-                setPendingTreatments(data.pending)
-                setTreatmentHistory(data.history)
-            }
-        } catch (error) {
-            console.error('Error fetching treatments:', error)
+      try {
+        const response = await fetch(`http://localhost:8000/api/treatments/?vet_email=${user.email}`)
+        if (response.ok) {
+          const data = await response.json()
+          setPendingTreatments(data.pending)
+          setTreatmentHistory(data.history)
         }
+      } catch (error) {
+        console.error('Error fetching treatments:', error)
+      }
+    }
+
+    const fetchOwners = async () => {
+      try {
+        const params = new URLSearchParams({ email: user.email })
+        const response = await fetch(`http://localhost:8000/api/owners/?${params.toString()}`)
+        if (response.ok) {
+          const data = await response.json()
+          setOwners(data)
+        }
+      } catch (error) {
+        console.error('Error fetching owners:', error)
+      }
     }
 
     const fetchData = async () => {
-        await Promise.all([fetchDrugs(), fetchPendingTreatments()])
-        setLoading(false)
+      await Promise.all([fetchDrugs(), fetchPendingTreatments(), fetchOwners()])
+      setLoading(false)
     }
 
     fetchData()
-  }, []) // navigate, user?.role
+  }, [navigate, user])
 
   const handleLogout = () => {
     localStorage.removeItem('user')
@@ -142,6 +158,36 @@ function VetDashboard() {
           console.error('Error updating treatment:', error)
           alert('Error updating treatment')
       }
+  }
+
+  const handleOwnerSearchChange = async (e) => {
+    const value = e.target.value
+    setOwnerSearch(value)
+    try {
+      const params = new URLSearchParams({ email: user.email })
+      if (value) params.append('q', value)
+      const response = await fetch(`http://localhost:8000/api/owners/?${params.toString()}`)
+      if (response.ok) {
+        const data = await response.json()
+        setOwners(data)
+      }
+    } catch (error) {
+      console.error('Error searching owners:', error)
+    }
+  }
+
+  const handleOwnerSelect = async (owner) => {
+    setSelectedOwner(owner)
+    try {
+      const params = new URLSearchParams({ email: user.email })
+      const response = await fetch(`http://localhost:8000/api/owners/${owner.id}/?${params.toString()}`)
+      if (response.ok) {
+        const data = await response.json()
+        setOwnerDetails(data)
+      }
+    } catch (error) {
+      console.error('Error fetching owner details:', error)
+    }
   }
 
   if (loading) return <div className="p-6">Loading...</div>
@@ -269,27 +315,83 @@ function VetDashboard() {
             </div>
 
             {!showInventory ? (
-                <div className="text-center mt-10">
-                    <h3 className="mt-2 text-sm font-semibold text-gray-900">Dashboard Actions</h3>
-                    <p className="mt-1 text-sm text-gray-500">Manage your veterinary tasks and resources.</p>
-                    <div className="mt-6 flex justify-center gap-4">
-                        {!profileCompleted && (
-                            <button
-                                onClick={() => setShowProfileForm(true)}
-                                className="inline-flex items-center rounded-md bg-yellow-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-yellow-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-yellow-600"
-                            >
-                                Complete Profile
-                            </button>
-                        )}
-                        <button
-                            onClick={() => setShowInventory(true)}
-                            className="inline-flex items-center rounded-md bg-primary-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
-                        >
-                            View Drug Inventory
-                        </button>
-                        {/* Future buttons can go here */}
-                    </div>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-10">
+                <div>
+                  <h3 className="mt-2 text-sm font-semibold text-gray-900">Dashboard Actions</h3>
+                  <p className="mt-1 text-sm text-gray-500">Manage your veterinary tasks and resources.</p>
+                  <div className="mt-6 flex flex-wrap gap-4">
+                    {!profileCompleted && (
+                      <button
+                        onClick={() => setShowProfileForm(true)}
+                        className="inline-flex items-center rounded-md bg-yellow-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-yellow-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-yellow-600"
+                      >
+                        Complete Profile
+                      </button>
+                    )}
+                    <button
+                      onClick={() => setShowInventory(true)}
+                      className="inline-flex items-center rounded-md bg-primary-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
+                    >
+                      View Drug Inventory
+                    </button>
+                  </div>
                 </div>
+                <div>
+                  <h3 className="mt-2 text-sm font-semibold text-gray-900">Owner Problems</h3>
+                  <p className="mt-1 text-sm text-gray-500">Search owners and review reported flock or animal problems.</p>
+                  <div className="mt-4 flex gap-2">
+                    <input
+                      type="text"
+                      value={ownerSearch}
+                      onChange={handleOwnerSearchChange}
+                      placeholder="Search owners by name, phone, or location..."
+                      className="flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                    />
+                  </div>
+                  <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="border border-gray-200 rounded-md max-h-64 overflow-y-auto">
+                      {owners.length === 0 ? (
+                        <p className="p-3 text-sm text-gray-500">No owners found.</p>
+                      ) : (
+                        <ul className="divide-y divide-gray-200">
+                          {owners.map((owner) => (
+                            <li
+                              key={owner.id}
+                              className={`p-3 cursor-pointer hover:bg-gray-50 ${selectedOwner?.id === owner.id ? 'bg-gray-50' : ''}`}
+                              onClick={() => handleOwnerSelect(owner)}
+                            >
+                              <p className="text-sm font-medium text-gray-900">{owner.name}</p>
+                              <p className="text-xs text-gray-500">
+                                {owner.phone_number || 'No phone'} • {owner.village ? `${owner.village}, ` : ''}{owner.district || ''}
+                              </p>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                    <div className="border border-gray-200 rounded-md max-h-64 overflow-y-auto p-3">
+                      {!ownerDetails ? (
+                        <p className="text-sm text-gray-500">Select an owner to view problems.</p>
+                      ) : ownerDetails.problems.length === 0 ? (
+                        <p className="text-sm text-gray-500">No problems logged for this owner.</p>
+                      ) : (
+                        <ul className="divide-y divide-gray-200">
+                          {ownerDetails.problems.map((problem) => (
+                            <li key={problem.id} className="py-2">
+                              <p className="text-sm text-gray-900">{problem.description}</p>
+                              <p className="text-xs text-gray-500">
+                                Severity: {problem.severity} • Date: {problem.date_reported}
+                                {problem.flock_id && ' • Flock'}
+                                {problem.animal_id && ' • Animal'}
+                              </p>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
             ) : (
                 <>
                   <div className="sm:flex sm:items-center justify-between">
@@ -378,8 +480,8 @@ function VetDashboard() {
                               ))}
                               {filteredDrugs.length === 0 && (
                                 <tr>
-                                    <td colSpan="5" className="py-4 text-center text-sm text-gray-500">
-                                        No drugs found matching "{searchTerm}"
+                                      <td colSpan="5" className="py-4 text-center text-sm text-gray-500">
+                                        No drugs found matching &quot;{searchTerm}&quot;
                                     </td>
                                 </tr>
                               )}

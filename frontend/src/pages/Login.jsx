@@ -70,7 +70,7 @@ function Login() {
           profile: data.profile
         }))
         
-        if (data.role === 'farmer') {
+        if (data.role === 'farmer' || data.role === 'data_operator') {
           setTimeout(() => navigate('/farmer-dashboard'), 1500)
         } else if (data.role === 'vet') {
           setTimeout(() => navigate('/vet-dashboard'), 1500)
