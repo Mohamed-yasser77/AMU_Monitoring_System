@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/operator/Sidebar';
 import SearchableTable from '../components/operator/SearchableTable';
 import FarmForm from '../components/operator/FarmForm';
-import { Plus, LayoutGrid, Clock, AlertTriangle, CheckCircle } from 'lucide-react';
+import { Plus, LayoutGrid, Clock, AlertTriangle, CheckCircle, Users, Home, Activity } from 'lucide-react';
 
 const speciesMapping = {
     'AVI': 'Avian',
@@ -44,11 +44,20 @@ const OperatorDashboard = () => {
                 fetch(`http://localhost:8000/api/problems/?email=${email}`)
             ]);
 
-            if (oRes.ok) setOwners(await oRes.json());
-            if (fRes.ok) setFarms(await fRes.json());
-            if (flRes.ok) setFlocks(await flRes.json());
-            if (tRes.ok) setTreatments(await tRes.json());
-            if (pRes.ok) setProblems(await pRes.json());
+            const ownersData = oRes.ok ? await oRes.json() : [];
+            const farmsData = fRes.ok ? await fRes.json() : [];
+            const flocksData = flRes.ok ? await flRes.json() : [];
+            const treatmentsData = tRes.ok ? await tRes.json() : [];
+            const problemsData = pRes.ok ? await pRes.json() : [];
+
+            setOwners(ownersData);
+            setFarms(farmsData);
+            setFlocks(flocksData);
+            setTreatments(treatmentsData);
+            setProblems(problemsData);
+
+
+
         } catch (err) {
             console.error('Fetch error:', err);
         } finally {
@@ -78,19 +87,19 @@ const OperatorDashboard = () => {
             case 'owners':
                 return (
                     <SearchableTable
-                        title="Managed Owners"
+                        title="Owner Portfolio"
                         data={owners}
-                        searchPlaceholder="Search by name, phone, or location..."
+                        searchPlaceholder="Find owner by name, email, or contact..."
                         columns={[
                             { header: 'Name', accessor: 'name' },
                             { header: 'Email', accessor: 'email' },
                             { header: 'Phone', accessor: 'phone_number' },
                             {
-                                header: 'Farms',
+                                header: 'Farms Managed',
                                 render: (row) => (
-                                    <div className="flex flex-wrap gap-1">
+                                    <div className="flex flex-wrap gap-2">
                                         {row.farms?.map((farm, idx) => (
-                                            <span key={idx} className="px-2 py-0.5 bg-indigo-50 text-indigo-600 rounded-md text-[10px] font-bold">
+                                            <span key={idx} className="px-3 py-1 bg-indigo-50 text-[#4f46e5] rounded-lg text-[10px] font-black uppercase tracking-wider border border-indigo-100/50 shadow-sm">
                                                 {farm}
                                             </span>
                                         ))}
@@ -101,9 +110,10 @@ const OperatorDashboard = () => {
                         actions={
                             <button
                                 onClick={() => setShowFarmForm(true)}
-                                className="bg-indigo-600 text-white px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-indigo-700 transition-all"
+                                className="px-6 py-3.5 bg-[#4f46e5] text-white rounded-2xl font-black text-xs uppercase tracking-[0.1em] hover:bg-[#4338ca] hover:shadow-xl hover:shadow-[#4f46e5]/20 transition-all transform hover:scale-105 active:scale-95 flex items-center gap-2"
                             >
-                                <Plus size={18} /> Add Farm/Owner
+                                <Plus size={18} strokeWidth={3} />
+                                Register New Enterprise
                             </button>
                         }
                     />
@@ -198,56 +208,73 @@ const OperatorDashboard = () => {
     }
 
     return (
-        <div className="min-h-screen bg-slate-50 flex">
-            <Sidebar
-                activeTab={activeTab}
-                setActiveTab={setActiveTab}
-                userName={user?.name}
-                onLogout={handleLogout}
-            />
+        <div className="min-h-screen bg-[#f8fafc] flex">
+            <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} userName={user?.name} onLogout={handleLogout} />
 
-            <main className="flex-1 ml-64 p-8 transition-all duration-300">
-                <header className="mb-10 flex items-center justify-between">
-                    <div>
-                        <h1 className="text-3xl font-black text-slate-900 tracking-tight">Data Operator Dashboard</h1>
-                        <p className="text-slate-500 font-medium">Monitoring stewardship across {farms.length} farms</p>
+            <main className="flex-1 ml-64 p-10 animate-fade-in custom-scrollbar overflow-y-auto h-screen">
+                <header className="flex justify-between items-center mb-12 animate-slide-up">
+                    <div className="space-y-1">
+                        <h1 className="text-4xl font-black text-slate-900 tracking-tight">
+                            Operator <span className="text-[#4f46e5]">Console</span>
+                        </h1>
+                        <div className="flex items-center gap-2">
+                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Management</span>
+                            <div className="w-1.5 h-1.5 rounded-full bg-[#4f46e5]/20" />
+                            <span className="text-[10px] font-black text-[#4f46e5] uppercase tracking-[0.2em]">{activeTab}</span>
+                        </div>
                     </div>
 
                     <div className="flex gap-4">
-                        <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4">
-                            <div className="bg-amber-100 p-2 rounded-xl text-amber-600">
-                                <Clock size={24} />
-                            </div>
-                            <div>
-                                <p className="text-xs font-bold text-slate-400 uppercase">Pending</p>
-                                <p className="text-xl font-black text-slate-900">{treatments.filter(t => t.status === 'pending').length}</p>
-                            </div>
-                        </div>
-                        <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4">
-                            <div className="bg-emerald-100 p-2 rounded-xl text-emerald-600">
-                                <CheckCircle size={24} />
-                            </div>
-                            <div>
-                                <p className="text-xs font-bold text-slate-400 uppercase">Approved</p>
-                                <p className="text-xl font-black text-slate-900">{treatments.filter(t => t.status === 'approved').length}</p>
-                            </div>
+                        <div className="px-6 py-3 bg-white border border-slate-100 rounded-2xl shadow-sm flex items-center gap-3 transition-all cursor-default">
+                            <div className="w-2 h-2 rounded-full bg-[#4f46e5] animate-pulse" />
+                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">System Live</span>
                         </div>
                     </div>
                 </header>
 
-                {showFarmForm ? (
-                    <FarmForm
-                        userEmail={user?.email}
-                        owners={owners}
-                        onCancel={() => setShowFarmForm(false)}
-                        onSuccess={() => {
-                            setShowFarmForm(false);
-                            fetchData();
-                        }}
-                    />
-                ) : (
-                    <div className="animate-in fade-in duration-500">
-                        {renderContent()}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+                    {[
+                        { label: 'Total Owners', value: owners.length, icon: Users, color: 'text-[#4f46e5]', bg: 'bg-[#4f46e5]/5', border: 'border-indigo-100/50', delay: '0ms' },
+                        { label: 'Active Farms', value: farms.length, icon: Home, color: 'text-slate-600', bg: 'bg-slate-50', border: 'border-slate-100', delay: '100ms' },
+                        { label: 'Total Flocks', value: flocks.length, icon: LayoutGrid, color: 'text-slate-600', bg: 'bg-slate-50', border: 'border-slate-100', delay: '200ms' },
+                        { label: 'Pending Logs', value: treatments.filter(t => t.status === 'pending').length, icon: Activity, color: 'text-rose-500', bg: 'bg-rose-50/50', border: 'border-rose-100/50', delay: '300ms' },
+                    ].map((stat, idx) => (
+                        <div
+                            key={idx}
+                            className="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.02)] relative overflow-hidden group hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] transition-all duration-500 animate-slide-up"
+                            style={{ animationDelay: stat.delay }}
+                        >
+                            <div className="relative z-10">
+                                <div className={`w-12 h-12 rounded-2xl ${stat.bg} ${stat.border} border flex items-center justify-center ${stat.color} mb-6 transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3`}>
+                                    <stat.icon size={22} strokeWidth={2.5} />
+                                </div>
+                                <div className="space-y-1">
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{stat.label}</p>
+                                    <h3 className="text-3xl font-black text-slate-800 tracking-tight">{stat.value}</h3>
+                                </div>
+                            </div>
+                            <div className={`absolute -right-4 -bottom-4 w-24 h-24 ${stat.bg} opacity-20 rounded-full blur-2xl transition-transform duration-700 group-hover:scale-150`} />
+                        </div>
+                    ))}
+                </div>
+
+                <div className="animate-slide-up" style={{ animationDelay: '400ms' }}>
+                    {renderContent()}
+                </div>
+
+                {showFarmForm && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-md animate-in fade-in duration-300">
+                        <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-3xl animate-in zoom-in-95 duration-300 shadow-2xl overflow-hidden">
+                            <FarmForm
+                                onCancel={() => setShowFarmForm(false)}
+                                onSuccess={() => {
+                                    setShowFarmForm(false);
+                                    fetchData();
+                                }}
+                                owners={owners}
+                                userEmail={user?.email}
+                            />
+                        </div>
                     </div>
                 )}
             </main>

@@ -75,11 +75,11 @@ const FarmForm = ({ onCancel, onSuccess, owners, userEmail }) => {
     };
 
     return (
-        <div className="bg-white rounded-2xl p-8 max-w-4xl mx-auto shadow-2xl border border-slate-100 animate-in fade-in slide-in-from-bottom-4 duration-300">
+        <div className="bg-white rounded-3xl p-10 max-w-4xl mx-auto shadow-[0_20px_50px_rgba(0,0,0,0.1)] border border-slate-100 animate-in fade-in slide-in-from-bottom-4 duration-300">
             <div className="flex items-center justify-between mb-8 pb-4 border-b border-slate-50">
                 <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-3">
-                    <div className="bg-indigo-500 p-2 rounded-lg">
-                        <Plus size={24} className="text-white" />
+                    <div className="bg-indigo-50 p-2.5 rounded-xl border border-indigo-100 shadow-sm">
+                        <Plus size={24} className="text-[#4f46e5]" />
                     </div>
                     Add New Farm
                 </h2>
@@ -87,27 +87,27 @@ const FarmForm = ({ onCancel, onSuccess, owners, userEmail }) => {
             </div>
 
             <div className="flex gap-4 mb-8">
-                <div className={`flex-1 h-2 rounded-full ${step >= 1 ? 'bg-indigo-500' : 'bg-slate-100'}`} />
-                <div className={`flex-1 h-2 rounded-full ${step >= 2 ? 'bg-indigo-500' : 'bg-slate-100'}`} />
+                <div className={`flex-1 h-1.5 rounded-full transition-all duration-500 ${step >= 1 ? 'bg-[#4f46e5]' : 'bg-slate-100'}`} />
+                <div className={`flex-1 h-1.5 rounded-full transition-all duration-500 ${step >= 2 ? 'bg-[#4f46e5]' : 'bg-slate-100'}`} />
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-8">
                 {step === 1 && (
                     <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
                         <div className="flex flex-col gap-4">
-                            <label className="text-sm font-bold text-slate-700">Owner Information</label>
-                            <div className="flex gap-4 p-1 bg-slate-50 rounded-xl">
+                            <label className="text-sm font-bold text-slate-900">Owner Information</label>
+                            <div className="flex gap-4 p-1.5 bg-slate-50 rounded-2xl border border-slate-100">
                                 <button
                                     type="button"
                                     onClick={() => setUseExistingOwner(true)}
-                                    className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${useExistingOwner ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-500'}`}
+                                    className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-all ${useExistingOwner ? 'bg-white shadow-sm text-[#4f46e5]' : 'text-slate-400'}`}
                                 >
                                     Existing Owner
                                 </button>
                                 <button
                                     type="button"
                                     onClick={() => setUseExistingOwner(false)}
-                                    className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${!useExistingOwner ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-500'}`}
+                                    className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-all ${!useExistingOwner ? 'bg-white shadow-sm text-[#4f46e5]' : 'text-slate-400'}`}
                                 >
                                     New Owner
                                 </button>
@@ -123,7 +123,7 @@ const FarmForm = ({ onCancel, onSuccess, owners, userEmail }) => {
                                         value={formData.owner_id}
                                         onChange={handleChange}
                                         required
-                                        className="w-full rounded-xl border-slate-200 focus:ring-2 focus:ring-indigo-500 py-4 px-5 bg-slate-50/50"
+                                        className="w-full rounded-xl border-slate-200 focus:ring-2 focus:ring-[#97D3CD]/50 py-4 px-5 bg-white border-slate-200 focus:border-[#4f46e5]/30 focus:ring-4 focus:ring-[#4f46e5]/5 shadow-sm"
                                     >
                                         <option value="">Select an Owner</option>
                                         {owners.map(o => <option key={o.id} value={o.id}>{o.name}</option>)}
@@ -134,19 +134,19 @@ const FarmForm = ({ onCancel, onSuccess, owners, userEmail }) => {
                             <div className="grid grid-cols-1 gap-6">
                                 <div className="space-y-2">
                                     <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Owner Name</label>
-                                    <input name="owner_name" placeholder="Enter owner's full name" onChange={handleChange} required className="w-full rounded-xl border-slate-200 focus:ring-2 focus:ring-indigo-500 py-4 px-5 bg-slate-50/50" />
+                                    <input name="owner_name" placeholder="Enter owner's full name" onChange={handleChange} required className="w-full rounded-xl border-slate-200 focus:ring-2 focus:ring-[#97D3CD]/50 py-4 px-5 bg-slate-50/50" />
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Owner Email</label>
-                                    <input name="owner_email" type="email" placeholder="email@example.com (Optional)" onChange={handleChange} className="w-full rounded-xl border-slate-200 focus:ring-2 focus:ring-indigo-500 py-4 px-5 bg-slate-50/50" />
+                                    <input name="owner_email" type="email" placeholder="email@example.com (Optional)" onChange={handleChange} className="w-full rounded-xl border-slate-200 focus:ring-2 focus:ring-[#97D3CD]/50 py-4 px-5 bg-slate-50/50" />
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Phone Number</label>
-                                    <input name="owner_phone_number" placeholder="+91 XXX XXX XXXX" onChange={handleChange} className="w-full rounded-xl border-slate-200 focus:ring-2 focus:ring-indigo-500 py-4 px-5 bg-slate-50/50" />
+                                    <input name="owner_phone_number" placeholder="+91 XXX XXX XXXX" onChange={handleChange} className="w-full rounded-xl border-slate-200 focus:ring-2 focus:ring-[#97D3CD]/50 py-4 px-5 bg-slate-50/50" />
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Physical Address</label>
-                                    <textarea name="owner_address" placeholder="Complete address of the owner" onChange={handleChange} rows="3" className="w-full rounded-xl border-slate-200 focus:ring-2 focus:ring-indigo-500 py-4 px-5 bg-slate-50/50" />
+                                    <textarea name="owner_address" placeholder="Complete address of the owner" onChange={handleChange} rows="3" className="w-full rounded-xl border-slate-200 focus:ring-2 focus:ring-[#97D3CD]/50 py-4 px-5 bg-slate-50/50" />
                                 </div>
                             </div>
                         )}
@@ -166,7 +166,7 @@ const FarmForm = ({ onCancel, onSuccess, owners, userEmail }) => {
                     <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
                         <div className="grid grid-cols-1 gap-8">
                             <div className="space-y-6">
-                                <h3 className="text-sm font-bold text-slate-900 border-l-4 border-indigo-500 pl-3">General Information</h3>
+                                <h3 className="text-sm font-bold text-slate-900 border-l-4 border-[#97D3CD] pl-3">General Information</h3>
                                 <div className="grid grid-cols-1 gap-4">
                                     <div className="space-y-2">
                                         <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Farm Name</label>
@@ -200,7 +200,7 @@ const FarmForm = ({ onCancel, onSuccess, owners, userEmail }) => {
                             </div>
 
                             <div className="space-y-6">
-                                <h3 className="text-sm font-bold text-slate-900 border-l-4 border-indigo-500 pl-3">Location Details</h3>
+                                <h3 className="text-sm font-bold text-slate-900 border-l-4 border-[#97D3CD] pl-3">Location Details</h3>
                                 <div className="grid grid-cols-1 gap-4">
                                     <div className="space-y-2">
                                         <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">State</label>
@@ -218,7 +218,7 @@ const FarmForm = ({ onCancel, onSuccess, owners, userEmail }) => {
                             </div>
 
                             <div className="space-y-6">
-                                <h3 className="text-sm font-bold text-slate-900 border-l-4 border-indigo-500 pl-3">Performance Metrics (Average)</h3>
+                                <h3 className="text-sm font-bold text-slate-900 border-l-4 border-[#97D3CD] pl-3">Performance Metrics (Average)</h3>
                                 <div className="grid grid-cols-1 gap-4">
                                     <div className="space-y-2">
                                         <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Avg Body Weight (kg)</label>
@@ -254,7 +254,7 @@ const FarmForm = ({ onCancel, onSuccess, owners, userEmail }) => {
                             <button
                                 type="submit"
                                 disabled={saving}
-                                className="flex-2 bg-indigo-600 text-white py-4 px-8 rounded-xl font-bold hover:bg-indigo-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                                className="flex-2 bg-[#4f46e5] text-white py-4 px-8 rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-[#4338ca] hover:shadow-[0_10px_40px_rgba(79,70,229,0.3)] transition-all transform hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 flex items-center justify-center gap-2"
                             >
                                 {saving ? 'Creating...' : <><CheckCircle2 size={20} /> Create farm & Link Owner</>}
                             </button>
