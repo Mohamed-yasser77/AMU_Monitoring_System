@@ -2,14 +2,22 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Activity, Beaker, Calendar, ClipboardList, CheckCircle2, AlertCircle, ArrowLeft, ChevronRight, Layers, Tag as TagIcon } from 'lucide-react';
 
-const inputClass = "w-full rounded-lg bg-[#14171a] border border-white/10 text-slate-200 placeholder:text-slate-600 py-3.5 px-4 text-sm focus:outline-none focus:border-[#00c096]/40 focus:ring-2 focus:ring-[#00c096]/10 transition-all";
-const labelClass = "block text-[10px] font-medium text-slate-500 uppercase tracking-widest mb-2";
-
 const LogTreatment = () => {
   const navigate = useNavigate();
   const [user] = useState(() => JSON.parse(localStorage.getItem('user')));
+  const [darkMode, setDarkMode] = useState(() => {
+    const saved = localStorage.getItem('operatorTheme');
+    return saved ? saved === 'dark' : false;
+  });
 
-  // --- State ---
+  useEffect(() => {
+    localStorage.setItem('operatorTheme', darkMode ? 'dark' : 'light');
+  }, [darkMode]);
+
+  const inputClass = `w-full rounded-2xl border py-4 px-5 text-sm font-bold transition-all outline-none ${darkMode ? 'bg-white/5 border-white/10 text-white placeholder:text-slate-600 focus:border-teal-500/50 focus:ring-4 focus:ring-teal-500/5' : 'bg-slate-50 border-slate-100 text-slate-700 placeholder:text-slate-300 focus:border-primary-200 focus:ring-4 focus:ring-primary-500/5'}`;
+  const labelClass = `block text-[10px] font-black uppercase tracking-[0.2em] mb-3 ${darkMode ? 'text-slate-500' : 'text-slate-400'}`;
+
+  // ... (keeping state and useEffects as they are logic-heavy)
   const [farms, setFarms] = useState([]);
   const [flocks, setFlocks] = useState([]);
   const [animals, setAnimals] = useState([]);
@@ -30,7 +38,6 @@ const LogTreatment = () => {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
 
-  // --- Data Fetching ---
   useEffect(() => {
     if (!user || (user.role !== 'data_operator' && user.role !== 'farmer')) {
       navigate('/login');
@@ -43,7 +50,6 @@ const LogTreatment = () => {
         if (response.ok) {
           const data = await response.json();
           setFarms(data);
-          // Only set default farm if none is currently selected to avoid selection reset glitch
           if (data.length > 0 && !formData.farm) {
             setFormData(prev => ({ ...prev, farm: data[0].id.toString() }));
           }
@@ -57,16 +63,12 @@ const LogTreatment = () => {
     };
 
     fetchFarms();
-  }, [navigate, user?.email]); // Depend on email string, not object
+  }, [navigate, user?.email]);
 
-  // Fetch Flocks when Farm changes
   useEffect(() => {
     if (formData.farm) {
       setFlocks([]);
-      // Clear dependent fields when farm selection changes
       setFormData(prev => ({ ...prev, flock_id: '', animal_id: '' }));
-
-      // Use standard flocks endpoint for authenticated user filtering
       fetch(`http://localhost:8000/api/flocks/?email=${user.email}&farm_id=${formData.farm}`)
         .then(res => res.json())
         .then(data => {
@@ -78,14 +80,10 @@ const LogTreatment = () => {
     }
   }, [formData.farm, user?.email]);
 
-  // Fetch Animals when Flock changes
   useEffect(() => {
     if (formData.flock_id) {
       setAnimals([]);
       setFormData(prev => ({ ...prev, animal_id: '' }));
-
-      // Note: We need a way to list animals for a flock. 
-      // The backend has AnimalListCreateView that accepts flock_id
       fetch(`http://localhost:8000/api/animals/?email=${user.email}&flock_id=${formData.flock_id}`)
         .then(res => res.json())
         .then(data => {
@@ -99,7 +97,6 @@ const LogTreatment = () => {
     }
   }, [formData.flock_id, user?.email]);
 
-  // Fetch Antibiotics based on selected level's species
   useEffect(() => {
     let species = '';
     if (formData.flock_id) {
@@ -126,7 +123,6 @@ const LogTreatment = () => {
     }
   }, [formData.farm, formData.flock_id, farms, flocks]);
 
-  // --- Handlers ---
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -140,7 +136,6 @@ const LogTreatment = () => {
     const payload = {
       ...formData,
       email: user.email,
-      // Convert strings to numbers for IDs
       farm: Number(formData.farm),
       flock_id: formData.flock_id ? Number(formData.flock_id) : null,
       animal_id: formData.animal_id ? Number(formData.animal_id) : null
@@ -168,134 +163,141 @@ const LogTreatment = () => {
   };
 
   if (loading) return (
-    <div className="min-h-screen bg-[#0f1113] flex items-center justify-center">
-      <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-[#00c096]"></div>
+    <div className={`min-h-screen ${darkMode ? 'bg-[#01050a]' : 'bg-slate-50'} flex items-center justify-center transition-colors duration-500`}>
+      <div className="flex flex-col items-center gap-4">
+        <div className={`animate-spin rounded-full h-10 w-10 border-t-2 ${darkMode ? 'border-teal-500 border-white/10' : 'border-primary-600 border-slate-200'}`}></div>
+        <p className={`${darkMode ? 'text-slate-500' : 'text-slate-400'} text-[10px] font-black uppercase tracking-widest`}>Accessing Medical Database...</p>
+      </div>
     </div>
   );
 
   if (success) return (
-    <div className="min-h-screen bg-[#0f1113] flex items-center justify-center p-4">
-      <div className="bg-[#1c2025] rounded-xl p-12 text-center border border-[#00c096]/20 shadow-2xl animate-in zoom-in duration-300">
-        <div className="w-20 h-20 bg-[#00c096]/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-[#00c096]/20 teal-glow">
-          <CheckCircle2 size={40} className="text-[#00c096]" />
+    <div className={`min-h-screen ${darkMode ? 'bg-[#01050a]' : 'bg-slate-50'} flex items-center justify-center p-4 transition-colors duration-500`}>
+      <div className={`${darkMode ? 'bg-[#020b17] border-white/5 shadow-none' : 'bg-white border-slate-100 shadow-2xl shadow-slate-200/50'} rounded-3xl p-12 text-center border animate-enter`}>
+        <div className={`w-24 h-24 ${darkMode ? 'bg-teal-500/10' : 'bg-primary-50'} rounded-3xl flex items-center justify-center mx-auto mb-8 border ${darkMode ? 'border-teal-500/20' : 'border-primary-100'}`}>
+          <CheckCircle2 size={48} className={darkMode ? 'text-teal-400' : 'text-primary-600'} />
         </div>
-        <h2 className="text-2xl font-bold text-white mb-2">Treatment Logged!</h2>
-        <p className="text-slate-400 text-sm mb-6 uppercase tracking-widest">Compliance Updated</p>
+        <h2 className={`text-2xl font-black mb-2 ${darkMode ? 'text-white' : 'text-slate-800'}`}>Log Recorded</h2>
+        <p className={`${darkMode ? 'text-slate-500' : 'text-slate-400'} text-[10px] font-black mb-8 uppercase tracking-[0.25em]`}>Audit Registry Updated Successfully</p>
         <div className="flex justify-center gap-2">
-          <div className="w-1.5 h-1.5 rounded-full bg-[#00c096] animate-pulse" />
-          <div className="w-1.5 h-1.5 rounded-full bg-[#00c096] animate-pulse delay-75" />
-          <div className="w-1.5 h-1.5 rounded-full bg-[#00c096] animate-pulse delay-150" />
+          <div className={`w-1.5 h-1.5 rounded-full ${darkMode ? 'bg-teal-500' : 'bg-primary-600'} animate-bounce`} />
+          <div className={`w-1.5 h-1.5 rounded-full ${darkMode ? 'bg-teal-500' : 'bg-primary-600'} animate-bounce delay-75`} />
+          <div className={`w-1.5 h-1.5 rounded-full ${darkMode ? 'bg-teal-500' : 'bg-primary-600'} animate-bounce delay-150`} />
         </div>
       </div>
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-[#0f1113] text-slate-200 py-12 px-4 flex justify-center items-start overflow-y-auto custom-scrollbar">
-      <div className="max-w-4xl w-full grid grid-cols-3 gap-8 mb-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className={`min-h-screen ${darkMode ? 'bg-[#01050a]' : 'bg-slate-50'} py-16 px-6 flex justify-center items-start overflow-y-auto custom-scrollbar transition-colors duration-500`}>
+      <div className="max-w-5xl w-full grid grid-cols-1 lg:grid-cols-3 gap-12 animate-slide-up">
 
         {/* Info Panel */}
-        <div className="space-y-6">
+        <div className="space-y-8">
           <button
             onClick={() => navigate('/operator-dashboard')}
-            className="flex items-center gap-2 text-slate-500 hover:text-white transition-colors text-xs font-bold uppercase tracking-widest group"
+            className={`flex items-center gap-3 transition-all text-[10px] font-black uppercase tracking-[0.2em] group ${darkMode ? 'text-slate-500 hover:text-teal-400' : 'text-slate-400 hover:text-primary-600'}`}
           >
-            <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" /> Back to Dashboard
+            <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
+            Back to Overview
           </button>
 
-          <div className="bg-[#1c2025] rounded-xl p-8 border border-white/5 shadow-xl relative overflow-hidden">
+          <div className={`${darkMode ? 'bg-[#020b17] border-white/5 shadow-none' : 'bg-white border-slate-100 shadow-xl shadow-slate-200/30'} rounded-3xl p-10 border relative overflow-hidden transition-all duration-300`}>
             <div className="relative z-10">
-              <h2 className="text-2xl font-bold text-white mb-4">Log Treatment</h2>
-              <p className="text-slate-500 text-sm leading-relaxed mb-8">
-                Register antibiotic use at the farm, flock, or individual animal level to maintain AMU compliance.
+              <div className={`w-12 h-12 ${darkMode ? 'bg-teal-600' : 'bg-primary-600'} rounded-2xl flex items-center justify-center text-white mb-6 shadow-lg ${darkMode ? 'shadow-teal-500/20' : 'shadow-primary-500/20'}`}>
+                <Activity size={24} />
+              </div>
+              <h2 className={`text-2xl font-black tracking-tight mb-4 ${darkMode ? 'text-white' : 'text-slate-800'}`}>Treatment Protocol</h2>
+              <p className={`${darkMode ? 'text-slate-400' : 'text-slate-500'} text-sm font-bold leading-relaxed mb-10`}>
+                Maintain high transparency by logging medical intervention at every production level.
               </p>
 
-              <div className="space-y-4">
-                <div className="flex items-start gap-3">
-                  <div className="p-2 bg-teal-accent/10 rounded-lg text-teal-accent shrink-0">
-                    <Layers size={14} />
+              <div className="space-y-6">
+                <div className="flex items-start gap-4">
+                  <div className={`p-2.5 rounded-xl shrink-0 border ${darkMode ? 'bg-teal-500/10 text-teal-400 border-teal-500/20' : 'bg-primary-50 text-primary-600 border-primary-100'}`}>
+                    <Layers size={16} />
                   </div>
                   <div>
-                    <p className="text-xs font-bold text-white uppercase tracking-wider">Granularity</p>
-                    <p className="text-[10px] text-slate-500 leading-normal">System supports 3 levels of targeting for precise regulation.</p>
+                    <p className={`text-[10px] font-black uppercase tracking-widest leading-none mb-1.5 ${darkMode ? 'text-slate-300' : 'text-slate-800'}`}>Target Scope</p>
+                    <p className={`text-[10px] font-bold leading-normal uppercase tracking-tighter ${darkMode ? 'text-slate-500' : 'text-slate-400'}`}>Farm, Flock, or Individual Entity</p>
                   </div>
                 </div>
-                <div className="flex items-start gap-3">
-                  <div className="p-2 bg-indigo-500/10 rounded-lg text-indigo-400 shrink-0">
-                    <Beaker size={14} />
+                <div className="flex items-start gap-4">
+                  <div className={`p-2.5 rounded-xl shrink-0 border ${darkMode ? 'bg-teal-500/10 text-teal-400 border-teal-500/20' : 'bg-indigo-50 text-indigo-500 border-indigo-100'}`}>
+                    <Beaker size={16} />
                   </div>
                   <div>
-                    <p className="text-xs font-bold text-white uppercase tracking-wider">Reference Check</p>
-                    <p className="text-[10px] text-slate-500 leading-normal">Antibiotics are filtered by species to ensure valid prescriptions.</p>
+                    <p className={`text-[10px] font-black uppercase tracking-widest leading-none mb-1.5 ${darkMode ? 'text-slate-300' : 'text-slate-800'}`}>Drug Validation</p>
+                    <p className={`text-[10px] font-bold leading-normal uppercase tracking-tighter ${darkMode ? 'text-slate-500' : 'text-slate-400'}`}>Species-specific molecule matching</p>
                   </div>
                 </div>
               </div>
             </div>
-            <Activity size={180} className="absolute -right-12 -bottom-12 opacity-[0.03] text-white rotate-12" />
+            <Activity size={200} className={`absolute -right-16 -bottom-16 opacity-[0.03] rotate-12 ${darkMode ? 'text-teal-500' : 'text-primary-900'}`} />
           </div>
 
-          <div className="bg-[#00c096]/5 rounded-xl p-6 border border-[#00c096]/10 flex items-center gap-4">
-            <div className="w-10 h-10 rounded-lg bg-[#00c096] flex items-center justify-center text-[#14171a] shadow-lg shadow-[#00c096]/20">
-              <ClipboardList size={20} />
+          <div className={`${darkMode ? 'bg-[#020b17] border-white/5 shadow-none' : 'bg-white border-slate-100 shadow-sm'} rounded-3xl p-8 border flex items-center gap-5 transition-all duration-300`}>
+            <div className={`w-14 h-14 rounded-2xl border flex items-center justify-center ${darkMode ? 'bg-white/5 border-white/5 text-slate-600' : 'bg-slate-50 border-slate-100 text-slate-400'}`}>
+              <ClipboardList size={24} />
             </div>
             <div>
-              <p className="text-[10px] text-slate-500 uppercase tracking-widest mb-0.5">Logged Today</p>
-              <p className="text-lg font-bold text-white">4 Sessions</p>
+              <p className={`text-[10px] font-black uppercase tracking-widest mb-1 ${darkMode ? 'text-slate-500' : 'text-slate-400'}`}>Session Volume</p>
+              <p className={`text-xl font-black tracking-tight ${darkMode ? 'text-white' : 'text-slate-800'}`}>Active Protocol</p>
             </div>
           </div>
         </div>
 
         {/* Form Panel */}
-        <div className="col-span-2 bg-[#1c2025] rounded-xl p-10 border border-white/5 shadow-2xl">
-          <form onSubmit={handleSubmit} className="space-y-8">
+        <div className={`lg:col-span-2 ${darkMode ? 'bg-[#020b17] border-white/5 shadow-none' : 'bg-white border-slate-100 shadow-2xl shadow-slate-200/40'} rounded-[3rem] p-12 lg:p-14 border transition-all duration-300`}>
+          <form onSubmit={handleSubmit} className="space-y-12">
 
             {/* 1. Target Selection */}
             <section>
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-1 h-4 bg-[#00c096] rounded-full" />
-                <h3 className="text-sm font-bold text-white uppercase tracking-[0.2em]">Target Identification</h3>
+              <div className="flex items-center gap-4 mb-8">
+                <div className={`w-2 h-2 rounded-full ${darkMode ? 'bg-teal-500 shadow-[0_0_8px_rgba(45,212,191,0.4)]' : 'bg-primary-600 shadow-[0_0_8px_rgba(37,99,235,0.4)]'}`} />
+                <h3 className={`text-xs font-black uppercase tracking-[0.3em] ${darkMode ? 'text-slate-300' : 'text-slate-800'}`}>Identity Matrix</h3>
               </div>
 
-              <div className="grid grid-cols-2 gap-6">
-                <div className="col-span-2">
-                  <label className={labelClass}>Farm</label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="md:col-span-2">
+                  <label className={labelClass}>Production Center</label>
                   <select name="farm" value={formData.farm} onChange={handleChange} required className={inputClass + " appearance-none"}>
-                    <option value="">Select a farm</option>
-                    {farms.map(f => <option key={f.id} value={f.id} className="bg-[#1c2025]">{f.name} ({f.farm_number})</option>)}
+                    <option value="" className={darkMode ? 'bg-[#1a1f2e]' : ''}>Select a farm</option>
+                    {farms.map(f => <option key={f.id} value={f.id} className={darkMode ? 'bg-[#1a1f2e]' : ''}>{f.name} ({f.farm_number})</option>)}
                   </select>
                 </div>
 
                 <div>
-                  <label className={labelClass}>Flock (Optional)</label>
-                  <div className="relative group">
+                  <label className={labelClass}>Flock Reference</label>
+                  <div className="relative group/select">
                     <select
                       name="flock_id"
                       value={formData.flock_id}
                       onChange={handleChange}
-                      className={inputClass + ` appearance-none ${!formData.farm ? 'opacity-30 cursor-not-allowed' : ''}`}
+                      className={inputClass + ` appearance-none ${!formData.farm ? 'opacity-40 cursor-not-allowed' : ''}`}
                       disabled={!formData.farm}
                     >
-                      <option value="">Whole Farm (All Flocks)</option>
-                      {flocks.map(f => <option key={f.id} value={f.id} className="bg-[#1c2025]">{f.flock_tag} ({f.size} animals)</option>)}
+                      <option value="" className={darkMode ? 'bg-[#1a1f2e]' : ''}>Global (All Flocks)</option>
+                      {flocks.map(f => <option key={f.id} value={f.id} className={darkMode ? 'bg-[#1a1f2e]' : ''}>{f.flock_tag} ({f.size} animals)</option>)}
                     </select>
-                    <ChevronRight size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-600 pointer-events-none group-hover:text-teal-accent transition-colors" />
+                    <ChevronRight size={18} className={`absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none transition-colors ${darkMode ? 'text-slate-600 group-focus-within/select:text-teal-400' : 'text-slate-300 group-focus-within/select:text-primary-600'}`} />
                   </div>
                 </div>
 
                 <div>
-                  <label className={labelClass}>Individual Animal (Optional)</label>
-                  <div className="relative group">
+                  <label className={labelClass}>Serial ID</label>
+                  <div className="relative group/select">
                     <select
                       name="animal_id"
                       value={formData.animal_id}
                       onChange={handleChange}
-                      className={inputClass + ` appearance-none ${!formData.flock_id ? 'opacity-30 cursor-not-allowed' : ''}`}
+                      className={inputClass + ` appearance-none ${!formData.flock_id ? 'opacity-40 cursor-not-allowed' : ''}`}
                       disabled={!formData.flock_id}
                     >
-                      <option value="">Whole Flock</option>
-                      {animals.map(a => <option key={a.id} value={a.id} className="bg-[#1c2025]">{a.animal_tag}</option>)}
+                      <option value="" className={darkMode ? 'bg-[#1a1f2e]' : ''}>Batch Management</option>
+                      {animals.map(a => <option key={a.id} value={a.id} className={darkMode ? 'bg-[#1a1f2e]' : ''}>{a.animal_tag}</option>)}
                     </select>
-                    <TagIcon size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-600 pointer-events-none group-hover:text-teal-accent transition-colors" />
+                    <TagIcon size={18} className={`absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none transition-colors ${darkMode ? 'text-slate-600 group-focus-within/select:text-teal-400' : 'text-slate-300 group-focus-within/select:text-primary-600'}`} />
                   </div>
                 </div>
               </div>
@@ -303,72 +305,74 @@ const LogTreatment = () => {
 
             {/* 2. Treatment Details */}
             <section>
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-1 h-4 bg-[#00c096] rounded-full" />
-                <h3 className="text-sm font-bold text-white uppercase tracking-[0.2em]">Medical Info</h3>
+              <div className="flex items-center gap-4 mb-8">
+                <div className={`w-2 h-2 rounded-full ${darkMode ? 'bg-teal-500 shadow-[0_0_8px_rgba(45,212,191,0.4)]' : 'bg-primary-600 shadow-[0_0_8px_rgba(37,99,235,0.4)]'}`} />
+                <h3 className={`text-xs font-black uppercase tracking-[0.3em] ${darkMode ? 'text-slate-300' : 'text-slate-800'}`}>Treatment Profile</h3>
               </div>
 
-              <div className="grid grid-cols-2 gap-6">
-                <div className="col-span-2">
-                  <label className={labelClass}>Antibiotic Name</label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="md:col-span-2">
+                  <label className={labelClass}>Medical Compound</label>
                   <select name="antibiotic_name" value={formData.antibiotic_name} onChange={handleChange} required className={inputClass + " appearance-none"}>
-                    <option value="">Select antibiotic</option>
-                    {antibiotics.map(a => <option key={a.id} value={a.name} className="bg-[#1c2025]">{a.name}</option>)}
+                    <option value="" className={darkMode ? 'bg-[#1a1f2e]' : ''}>Select molecule...</option>
+                    {antibiotics.map(a => <option key={a.id} value={a.name} className={darkMode ? 'bg-[#1a1f2e]' : ''}>{a.name}</option>)}
                   </select>
                 </div>
 
                 <div>
-                  <label className={labelClass}>Reason</label>
+                  <label className={labelClass}>Clinical Intent</label>
                   <select name="reason" value={formData.reason} onChange={handleChange} required className={inputClass + " appearance-none"}>
-                    <option value="">Select reason</option>
-                    <option value="treat_disease" className="bg-[#1c2025]">Treat Disease</option>
-                    <option value="prophylactic" className="bg-[#1c2025]">Prophylactic</option>
-                    <option value="other" className="bg-[#1c2025]">Other</option>
+                    <option value="" className={darkMode ? 'bg-[#1a1f2e]' : ''}>Select intent</option>
+                    <option value="treat_disease" className={darkMode ? 'bg-[#1a1f2e]' : ''}>Curative (Disease Treatment)</option>
+                    <option value="prophylactic" className={darkMode ? 'bg-[#1a1f2e]' : ''}>Preventative (Prophylactic)</option>
+                    <option value="other" className={darkMode ? 'bg-[#1a1f2e]' : ''}>Specified Other</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className={labelClass}>Treated For</label>
+                  <label className={labelClass}>Pathological Category</label>
                   <select name="treated_for" value={formData.treated_for} onChange={handleChange} required className={inputClass + " appearance-none"}>
-                    <option value="">Select condition</option>
-                    <option value="enteric" className="bg-[#1c2025]">Enteric</option>
-                    <option value="respiratory" className="bg-[#1c2025]">Respiratory</option>
-                    <option value="reproductive" className="bg-[#1c2025]">Reproductive</option>
-                    <option value="other" className="bg-[#1c2025]">Other</option>
+                    <option value="" className={darkMode ? 'bg-[#1a1f2e]' : ''}>Select pathology</option>
+                    <option value="enteric" className={darkMode ? 'bg-[#1a1f2e]' : ''}>Enteric Syndrome</option>
+                    <option value="respiratory" className={darkMode ? 'bg-[#1a1f2e]' : ''}>Respiratory Infection</option>
+                    <option value="reproductive" className={darkMode ? 'bg-[#1a1f2e]' : ''}>Reproductive Disorder</option>
+                    <option value="other" className={darkMode ? 'bg-[#1a1f2e]' : ''}>Others</option>
                   </select>
                 </div>
 
-                <div className="col-span-2">
-                  <label className={labelClass}>Treatment Date</label>
-                  <div className="relative">
+                <div className="md:col-span-2">
+                  <label className={labelClass}>Administration Date</label>
+                  <div className="relative group">
                     <input type="date" name="date" value={formData.date} onChange={handleChange} required className={inputClass} />
-                    <Calendar size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-600 pointer-events-none" />
+                    <Calendar size={18} className={`absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none transition-colors ${darkMode ? 'text-slate-600 group-focus-within:text-teal-400' : 'text-slate-300 group-focus-within:text-primary-600'}`} />
                   </div>
                 </div>
               </div>
             </section>
 
             {error && (
-              <div className="p-4 bg-rose-500/10 text-rose-400 border border-rose-500/20 rounded-lg flex items-center gap-3 text-sm">
-                <AlertCircle size={16} />
+              <div className={`p-6 border rounded-2xl flex items-center gap-4 text-sm font-bold animate-fade-in ${darkMode ? 'bg-rose-500/10 border-rose-500/20 text-rose-400' : 'bg-rose-50 border-rose-100 text-rose-600'}`}>
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${darkMode ? 'bg-rose-500/20' : 'bg-rose-100'}`}>
+                  <AlertCircle size={18} />
+                </div>
                 {error}
               </div>
             )}
 
-            <div className="flex gap-4 pt-4">
+            <div className="flex flex-col sm:flex-row gap-5 pt-6">
               <button
                 type="button"
                 onClick={() => navigate('/operator-dashboard')}
-                className="flex-1 bg-white/5 text-slate-400 py-4 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-white/10 hover:text-white transition-all border border-white/5"
+                className={`flex-1 py-5 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all border ${darkMode ? 'bg-white/5 text-slate-500 border-white/5 hover:bg-white/10 hover:text-slate-400' : 'bg-slate-50 text-slate-400 border-slate-100 hover:bg-slate-100 hover:text-slate-600'}`}
               >
-                Cancel
+                Discard Entry
               </button>
               <button
                 type="submit"
                 disabled={saving}
-                className="flex-[2] bg-[#00c096] text-[#14171a] py-4 rounded-xl font-bold text-xs uppercase tracking-[0.2em] hover:bg-[#00d4a6] transition-all disabled:opacity-40 flex items-center justify-center gap-3 shadow-lg shadow-[#00c096]/10 teal-glow"
+                className={`flex-[2] py-5 rounded-2xl font-black text-[10px] uppercase tracking-[0.25em] transition-all disabled:opacity-40 flex items-center justify-center gap-4 shadow-xl group/submit ${darkMode ? 'bg-teal-600 text-white hover:bg-teal-500 shadow-teal-500/25' : 'bg-primary-600 text-white hover:bg-primary-700 shadow-primary-500/25'}`}
               >
-                {saving ? 'LOGGING...' : <><Activity size={18} /> Submit Treatment Log</>}
+                {saving ? 'Processing Entry...' : <><Activity size={18} className="group-hover/submit:scale-125 transition-transform" /> Finalize Registry Log</>}
               </button>
             </div>
           </form>

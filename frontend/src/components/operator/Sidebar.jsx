@@ -27,8 +27,9 @@ const Sidebar = ({ activeTab, setActiveTab, userName, onLogout }) => {
     };
 
     return (
-        <div className="flex flex-col h-full bg-[#1c2025] text-slate-400 w-64 fixed left-0 top-0 z-30 border-r border-white/5 shadow-2xl transition-all duration-300">
-            <div className="p-8">
+        <div className="flex flex-col h-screen bg-[#1c2025] text-slate-400 w-64 fixed left-0 top-0 z-30 border-r border-white/5 shadow-2xl transition-all duration-300">
+            {/* Scrollable Content Area */}
+            <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
                 <div className="flex items-center gap-3 mb-12 animate-slide-up">
                     <div className="bg-teal-accent/10 p-2.5 rounded-lg border border-teal-accent/20 transition-all teal-glow">
                         <Activity size={24} className="text-teal-accent" />
@@ -87,7 +88,8 @@ const Sidebar = ({ activeTab, setActiveTab, userName, onLogout }) => {
                 </div>
             </div>
 
-            <div className="mt-auto p-6 space-y-4">
+            {/* Fixed Bottom Section */}
+            <div className="p-6 space-y-4 border-t border-white/5 bg-[#1c2025]">
                 <div className="flex items-center gap-3.5 px-3 py-3 rounded-lg border border-white/5 bg-white/[0.02] group transition-all hover:bg-white/[0.05] cursor-default">
                     <div className="relative">
                         <div className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center font-bold text-slate-400 group-hover:text-teal-accent transition-colors">

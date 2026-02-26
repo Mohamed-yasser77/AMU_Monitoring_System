@@ -22,7 +22,6 @@ const FarmForm = ({ onCancel, onSuccess, owners, userEmail }) => {
         village: '',
         farm_number: '',
         farm_type: 'commercial',
-        farm_type: 'commercial',
         species_type: 'MIX'
     });
 
@@ -132,7 +131,7 @@ const FarmForm = ({ onCancel, onSuccess, owners, userEmail }) => {
                                     required
                                     className={inputClass + " appearance-none"}
                                 >
-                                    <option value="" className="bg-[#1c2025]">— Select an Owner —</option>
+                                    <option value="" className="bg-[#1c2025]">― Select an Owner ―</option>
                                     {owners.map(o => <option key={o.id} value={o.id} className="bg-[#1c2025]">{o.name}</option>)}
                                 </select>
                             </div>
@@ -140,19 +139,19 @@ const FarmForm = ({ onCancel, onSuccess, owners, userEmail }) => {
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className={labelClass}>Owner Name</label>
-                                    <input name="owner_name" placeholder="Full name" onChange={handleChange} required className={inputClass} />
+                                    <input name="owner_name" value={formData.owner_name} placeholder="Full name" onChange={handleChange} required className={inputClass} />
                                 </div>
                                 <div>
                                     <label className={labelClass}>Email (Optional)</label>
-                                    <input name="owner_email" type="email" placeholder="email@example.com" onChange={handleChange} className={inputClass} />
+                                    <input name="owner_email" value={formData.owner_email} type="email" placeholder="email@example.com" onChange={handleChange} className={inputClass} />
                                 </div>
                                 <div>
                                     <label className={labelClass}>Phone Number</label>
-                                    <input name="owner_phone_number" placeholder="+91 XXX XXX XXXX" onChange={handleChange} className={inputClass} />
+                                    <input name="owner_phone_number" value={formData.owner_phone_number} placeholder="+91 XXX XXX XXXX" onChange={handleChange} className={inputClass} />
                                 </div>
                                 <div>
                                     <label className={labelClass}>Address</label>
-                                    <input name="owner_address" placeholder="Physical address" onChange={handleChange} className={inputClass} />
+                                    <input name="owner_address" value={formData.owner_address} placeholder="Physical address" onChange={handleChange} className={inputClass} />
                                 </div>
                             </div>
                         )}
@@ -179,11 +178,11 @@ const FarmForm = ({ onCancel, onSuccess, owners, userEmail }) => {
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className={labelClass}>Farm Name</label>
-                                    <input name="name" placeholder="e.g. Sunrise Poultry" onChange={handleChange} required className={inputClass} />
+                                    <input name="name" value={formData.name} placeholder="e.g. Sunrise Poultry" onChange={handleChange} required className={inputClass} />
                                 </div>
                                 <div>
                                     <label className={labelClass}>Registration Number</label>
-                                    <input name="farm_number" placeholder="e.g. FRM-2024-001" onChange={handleChange} required className={inputClass} />
+                                    <input name="farm_number" value={formData.farm_number} placeholder="e.g. FRM-2024-001" onChange={handleChange} required className={inputClass} />
                                 </div>
                                 <div>
                                     <label className={labelClass}>Farm Type</label>
@@ -215,15 +214,15 @@ const FarmForm = ({ onCancel, onSuccess, owners, userEmail }) => {
                             <div className="grid grid-cols-3 gap-4">
                                 <div>
                                     <label className={labelClass}>State</label>
-                                    <input name="state" placeholder="e.g. Tamil Nadu" onChange={handleChange} required className={inputClass} />
+                                    <input name="state" value={formData.state} placeholder="e.g. Tamil Nadu" onChange={handleChange} required className={inputClass} />
                                 </div>
                                 <div>
                                     <label className={labelClass}>District</label>
-                                    <input name="district" placeholder="e.g. Coimbatore" onChange={handleChange} className={inputClass} />
+                                    <input name="district" value={formData.district} placeholder="e.g. Coimbatore" onChange={handleChange} className={inputClass} />
                                 </div>
                                 <div>
                                     <label className={labelClass}>Village / Area</label>
-                                    <input name="village" placeholder="e.g. Sulur" onChange={handleChange} className={inputClass} />
+                                    <input name="village" value={formData.village} placeholder="e.g. Sulur" onChange={handleChange} className={inputClass} />
                                 </div>
                             </div>
                         </div>
