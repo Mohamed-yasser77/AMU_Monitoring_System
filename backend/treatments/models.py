@@ -1,6 +1,7 @@
 from django.db import models
-from farms.models import Farm
+from farms.models import Farm, Flock, Animal
 from amu_monitoring.users.models import User
+
 
 class Treatment(models.Model):
     REASON_CHOICES = [
@@ -22,7 +23,13 @@ class Treatment(models.Model):
         ('rejected', 'Rejected'),
     ]
 
+    # Treatment target — farm is always set; flock/animal narrow the scope
     farm = models.ForeignKey(Farm, on_delete=models.CASCADE, related_name='treatments')
+    flock = models.ForeignKey(Flock, on_delete=models.SET_NULL, null=True, blank=True,
+                               related_name='treatments', help_text="If set, treatment targets this flock only")
+    animal = models.ForeignKey(Animal, on_delete=models.SET_NULL, null=True, blank=True,
+                                related_name='treatments', help_text="If set, treatment targets a single animal in the flock")
+
     vet = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='assigned_treatments')
     recorded_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='treatments_recorded')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
@@ -33,4 +40,5 @@ class Treatment(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.antibiotic_name} - {self.farm.name} - {self.status}"
+        target = self.animal.animal_tag if self.animal else (self.flock.flock_tag if self.flock else self.farm.name)
+        return f"{self.antibiotic_name} → {target} ({self.status})"

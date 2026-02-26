@@ -1,5 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { Plus, UserPlus, Home, CheckCircle2, AlertCircle } from 'lucide-react';
+import React, { useState } from 'react';
+import { Plus, CheckCircle2, AlertCircle, X } from 'lucide-react';
+
+const inputClass = "w-full rounded-lg bg-[#14171a] border border-white/10 text-slate-200 placeholder:text-slate-600 py-3.5 px-4 text-sm focus:outline-none focus:border-[#00c096]/40 focus:ring-2 focus:ring-[#00c096]/10 transition-all";
+const labelClass = "block text-[10px] font-medium text-slate-500 uppercase tracking-widest mb-2";
 
 const FarmForm = ({ onCancel, onSuccess, owners, userEmail }) => {
     const [step, setStep] = useState(1);
@@ -75,39 +78,47 @@ const FarmForm = ({ onCancel, onSuccess, owners, userEmail }) => {
     };
 
     return (
-        <div className="bg-white rounded-3xl p-10 max-w-4xl mx-auto shadow-[0_20px_50px_rgba(0,0,0,0.1)] border border-slate-100 animate-in fade-in slide-in-from-bottom-4 duration-300">
-            <div className="flex items-center justify-between mb-8 pb-4 border-b border-slate-50">
-                <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-3">
-                    <div className="bg-indigo-50 p-2.5 rounded-xl border border-indigo-100 shadow-sm">
-                        <Plus size={24} className="text-[#4f46e5]" />
+        <div className="bg-[#1c2025] rounded-xl p-8 max-w-3xl mx-auto border border-white/5 shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-300">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-6 pb-5 border-b border-white/5">
+                <div className="flex items-center gap-3">
+                    <div className="p-2 bg-teal-accent/10 rounded-lg border border-teal-accent/20">
+                        <Plus size={20} className="text-teal-accent" />
                     </div>
-                    Add New Farm
-                </h2>
-                <button onClick={onCancel} className="text-slate-400 hover:text-slate-600 font-medium">Cancel</button>
+                    <div>
+                        <h2 className="text-lg font-bold text-white">Add New Farm</h2>
+                        <p className="text-[10px] text-slate-500 uppercase tracking-widest mt-0.5">Step {step} of 2 — {step === 1 ? 'Owner Info' : 'Farm Details'}</p>
+                    </div>
+                </div>
+                <button onClick={onCancel} className="p-2 text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-all">
+                    <X size={18} />
+                </button>
             </div>
 
-            <div className="flex gap-4 mb-8">
-                <div className={`flex-1 h-1.5 rounded-full transition-all duration-500 ${step >= 1 ? 'bg-[#4f46e5]' : 'bg-slate-100'}`} />
-                <div className={`flex-1 h-1.5 rounded-full transition-all duration-500 ${step >= 2 ? 'bg-[#4f46e5]' : 'bg-slate-100'}`} />
+            {/* Progress Bar */}
+            <div className="flex gap-2 mb-8">
+                <div className={`flex-1 h-1 rounded-full transition-all duration-500 ${step >= 1 ? 'bg-teal-accent' : 'bg-white/5'}`} />
+                <div className={`flex-1 h-1 rounded-full transition-all duration-500 ${step >= 2 ? 'bg-teal-accent' : 'bg-white/5'}`} />
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-8">
+            <form onSubmit={handleSubmit} className="space-y-6">
                 {step === 1 && (
                     <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
-                        <div className="flex flex-col gap-4">
-                            <label className="text-sm font-bold text-slate-900">Owner Information</label>
-                            <div className="flex gap-4 p-1.5 bg-slate-50 rounded-2xl border border-slate-100">
+                        {/* Toggle */}
+                        <div>
+                            <label className={labelClass}>Owner Type</label>
+                            <div className="flex gap-2 p-1 bg-[#14171a] rounded-lg border border-white/10">
                                 <button
                                     type="button"
                                     onClick={() => setUseExistingOwner(true)}
-                                    className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-all ${useExistingOwner ? 'bg-white shadow-sm text-[#4f46e5]' : 'text-slate-400'}`}
+                                    className={`flex-1 py-2.5 rounded-md text-xs font-medium transition-all ${useExistingOwner ? 'bg-teal-accent/20 text-teal-accent border border-teal-accent/30' : 'text-slate-500 hover:text-slate-300'}`}
                                 >
                                     Existing Owner
                                 </button>
                                 <button
                                     type="button"
                                     onClick={() => setUseExistingOwner(false)}
-                                    className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-all ${!useExistingOwner ? 'bg-white shadow-sm text-[#4f46e5]' : 'text-slate-400'}`}
+                                    className={`flex-1 py-2.5 rounded-md text-xs font-medium transition-all ${!useExistingOwner ? 'bg-teal-accent/20 text-teal-accent border border-teal-accent/30' : 'text-slate-500 hover:text-slate-300'}`}
                                 >
                                     New Owner
                                 </button>
@@ -115,38 +126,36 @@ const FarmForm = ({ onCancel, onSuccess, owners, userEmail }) => {
                         </div>
 
                         {useExistingOwner ? (
-                            <div className="grid grid-cols-1 gap-6">
-                                <div className="space-y-2">
-                                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Select Owner</label>
-                                    <select
-                                        name="owner_id"
-                                        value={formData.owner_id}
-                                        onChange={handleChange}
-                                        required
-                                        className="w-full rounded-xl border-slate-200 focus:ring-2 focus:ring-[#97D3CD]/50 py-4 px-5 bg-white border-slate-200 focus:border-[#4f46e5]/30 focus:ring-4 focus:ring-[#4f46e5]/5 shadow-sm"
-                                    >
-                                        <option value="">Select an Owner</option>
-                                        {owners.map(o => <option key={o.id} value={o.id}>{o.name}</option>)}
-                                    </select>
-                                </div>
+                            <div>
+                                <label className={labelClass}>Select Owner</label>
+                                <select
+                                    name="owner_id"
+                                    value={formData.owner_id}
+                                    onChange={handleChange}
+                                    required
+                                    className={inputClass + " appearance-none"}
+                                >
+                                    <option value="" className="bg-[#1c2025]">— Select an Owner —</option>
+                                    {owners.map(o => <option key={o.id} value={o.id} className="bg-[#1c2025]">{o.name}</option>)}
+                                </select>
                             </div>
                         ) : (
-                            <div className="grid grid-cols-1 gap-6">
-                                <div className="space-y-2">
-                                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Owner Name</label>
-                                    <input name="owner_name" placeholder="Enter owner's full name" onChange={handleChange} required className="w-full rounded-xl border-slate-200 focus:ring-2 focus:ring-[#97D3CD]/50 py-4 px-5 bg-slate-50/50" />
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className={labelClass}>Owner Name</label>
+                                    <input name="owner_name" placeholder="Full name" onChange={handleChange} required className={inputClass} />
                                 </div>
-                                <div className="space-y-2">
-                                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Owner Email</label>
-                                    <input name="owner_email" type="email" placeholder="email@example.com (Optional)" onChange={handleChange} className="w-full rounded-xl border-slate-200 focus:ring-2 focus:ring-[#97D3CD]/50 py-4 px-5 bg-slate-50/50" />
+                                <div>
+                                    <label className={labelClass}>Email (Optional)</label>
+                                    <input name="owner_email" type="email" placeholder="email@example.com" onChange={handleChange} className={inputClass} />
                                 </div>
-                                <div className="space-y-2">
-                                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Phone Number</label>
-                                    <input name="owner_phone_number" placeholder="+91 XXX XXX XXXX" onChange={handleChange} className="w-full rounded-xl border-slate-200 focus:ring-2 focus:ring-[#97D3CD]/50 py-4 px-5 bg-slate-50/50" />
+                                <div>
+                                    <label className={labelClass}>Phone Number</label>
+                                    <input name="owner_phone_number" placeholder="+91 XXX XXX XXXX" onChange={handleChange} className={inputClass} />
                                 </div>
-                                <div className="space-y-2">
-                                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Physical Address</label>
-                                    <textarea name="owner_address" placeholder="Complete address of the owner" onChange={handleChange} rows="3" className="w-full rounded-xl border-slate-200 focus:ring-2 focus:ring-[#97D3CD]/50 py-4 px-5 bg-slate-50/50" />
+                                <div>
+                                    <label className={labelClass}>Address</label>
+                                    <input name="owner_address" placeholder="Physical address" onChange={handleChange} className={inputClass} />
                                 </div>
                             </div>
                         )}
@@ -155,108 +164,119 @@ const FarmForm = ({ onCancel, onSuccess, owners, userEmail }) => {
                             type="button"
                             onClick={() => setStep(2)}
                             disabled={useExistingOwner && !formData.owner_id}
-                            className="w-full bg-slate-900 text-white py-4 rounded-xl font-bold hover:bg-slate-800 transition-all disabled:opacity-50"
+                            className="w-full bg-[#00c096] text-[#14171a] py-3.5 rounded-lg font-bold text-sm hover:bg-[#00d4a6] transition-all disabled:opacity-30 disabled:cursor-not-allowed"
                         >
-                            Continue to Farm Details
+                            Continue to Farm Details →
                         </button>
                     </div>
                 )}
 
                 {step === 2 && (
                     <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
-                        <div className="grid grid-cols-1 gap-8">
-                            <div className="space-y-6">
-                                <h3 className="text-sm font-bold text-slate-900 border-l-4 border-[#97D3CD] pl-3">General Information</h3>
-                                <div className="grid grid-cols-1 gap-4">
-                                    <div className="space-y-2">
-                                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Farm Name</label>
-                                        <input name="name" placeholder="e.g. Sunrise Poultry" onChange={handleChange} required className="w-full rounded-xl border-slate-200 focus:ring-2 focus:ring-indigo-500 py-4 px-5 bg-slate-50/50" />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Registration Number</label>
-                                        <input name="farm_number" placeholder="e.g. FRM-2024-001" onChange={handleChange} required className="w-full rounded-xl border-slate-200 focus:ring-2 focus:ring-indigo-500 py-4 px-5 bg-slate-50/50" />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Farm Type</label>
-                                        <select name="farm_type" value={formData.farm_type} onChange={handleChange} className="w-full rounded-xl border-slate-200 py-4 px-5 bg-slate-50/50">
-                                            <option value="backyard">Backyard</option>
-                                            <option value="commercial">Commercial</option>
-                                        </select>
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Species Category</label>
-                                        <select name="species_type" value={formData.species_type} onChange={handleChange} className="w-full rounded-xl border-slate-200 py-4 px-5 bg-slate-50/50">
-                                            <option value="AVI">Avian (Poultry)</option>
-                                            <option value="BOV">Bovine (Cattle)</option>
-                                            <option value="SUI">Suine (Pigs)</option>
-                                            <option value="CAP">Caprine (Goats)</option>
-                                        </select>
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Animal Count</label>
-                                        <input name="total_animals" type="number" placeholder="0" onChange={handleChange} required className="w-full rounded-xl border-slate-200 py-4 px-5 bg-slate-50/50" />
-                                    </div>
+                        {/* Section: General */}
+                        <div>
+                            <div className="flex items-center gap-3 mb-5">
+                                <div className="w-0.5 h-5 bg-teal-accent rounded-full" />
+                                <h3 className="text-sm font-medium text-slate-300 uppercase tracking-widest">General Information</h3>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className={labelClass}>Farm Name</label>
+                                    <input name="name" placeholder="e.g. Sunrise Poultry" onChange={handleChange} required className={inputClass} />
+                                </div>
+                                <div>
+                                    <label className={labelClass}>Registration Number</label>
+                                    <input name="farm_number" placeholder="e.g. FRM-2024-001" onChange={handleChange} required className={inputClass} />
+                                </div>
+                                <div>
+                                    <label className={labelClass}>Farm Type</label>
+                                    <select name="farm_type" value={formData.farm_type} onChange={handleChange} className={inputClass + " appearance-none"}>
+                                        <option value="backyard" className="bg-[#1c2025]">Backyard</option>
+                                        <option value="commercial" className="bg-[#1c2025]">Commercial</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className={labelClass}>Species Category</label>
+                                    <select name="species_type" value={formData.species_type} onChange={handleChange} className={inputClass + " appearance-none"}>
+                                        <option value="AVI" className="bg-[#1c2025]">Avian (Poultry)</option>
+                                        <option value="BOV" className="bg-[#1c2025]">Bovine (Cattle)</option>
+                                        <option value="SUI" className="bg-[#1c2025]">Suine (Pigs)</option>
+                                        <option value="CAP" className="bg-[#1c2025]">Caprine (Goats)</option>
+                                        <option value="OVI" className="bg-[#1c2025]">Ovine (Sheep)</option>
+                                    </select>
+                                </div>
+                                <div className="col-span-2">
+                                    <label className={labelClass}>Total Animal Count</label>
+                                    <input name="total_animals" type="number" placeholder="0" onChange={handleChange} required className={inputClass} />
                                 </div>
                             </div>
+                        </div>
 
-                            <div className="space-y-6">
-                                <h3 className="text-sm font-bold text-slate-900 border-l-4 border-[#97D3CD] pl-3">Location Details</h3>
-                                <div className="grid grid-cols-1 gap-4">
-                                    <div className="space-y-2">
-                                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">State</label>
-                                        <input name="state" placeholder="e.g. Tamil Nadu" onChange={handleChange} required className="w-full rounded-xl border-slate-200 focus:ring-2 focus:ring-indigo-500 py-4 px-5 bg-slate-50/50" />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">District</label>
-                                        <input name="district" placeholder="e.g. Coimbatore" onChange={handleChange} className="w-full rounded-xl border-slate-200 focus:ring-2 focus:ring-indigo-500 py-4 px-5 bg-slate-50/50" />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Village / Area</label>
-                                        <input name="village" placeholder="e.g. Sulur" onChange={handleChange} className="w-full rounded-xl border-slate-200 focus:ring-2 focus:ring-indigo-500 py-4 px-5 bg-slate-50/50" />
-                                    </div>
+                        {/* Section: Location */}
+                        <div>
+                            <div className="flex items-center gap-3 mb-5">
+                                <div className="w-0.5 h-5 bg-teal-accent rounded-full" />
+                                <h3 className="text-sm font-medium text-slate-300 uppercase tracking-widest">Location</h3>
+                            </div>
+                            <div className="grid grid-cols-3 gap-4">
+                                <div>
+                                    <label className={labelClass}>State</label>
+                                    <input name="state" placeholder="e.g. Tamil Nadu" onChange={handleChange} required className={inputClass} />
+                                </div>
+                                <div>
+                                    <label className={labelClass}>District</label>
+                                    <input name="district" placeholder="e.g. Coimbatore" onChange={handleChange} className={inputClass} />
+                                </div>
+                                <div>
+                                    <label className={labelClass}>Village / Area</label>
+                                    <input name="village" placeholder="e.g. Sulur" onChange={handleChange} className={inputClass} />
                                 </div>
                             </div>
+                        </div>
 
-                            <div className="space-y-6">
-                                <h3 className="text-sm font-bold text-slate-900 border-l-4 border-[#97D3CD] pl-3">Performance Metrics (Average)</h3>
-                                <div className="grid grid-cols-1 gap-4">
-                                    <div className="space-y-2">
-                                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Avg Body Weight (kg)</label>
-                                        <input name="avg_weight" type="number" step="0.01" placeholder="0.00" onChange={handleChange} required className="w-full rounded-xl border-slate-200 py-4 px-5 bg-slate-50/50" />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Avg Feed Intake (kg/day)</label>
-                                        <input name="avg_feed_consumption" type="number" step="0.01" placeholder="0.00" onChange={handleChange} required className="w-full rounded-xl border-slate-200 py-4 px-5 bg-slate-50/50" />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Avg Water Intake (L/day)</label>
-                                        <input name="avg_water_consumption" type="number" step="0.01" placeholder="0.00" onChange={handleChange} required className="w-full rounded-xl border-slate-200 py-4 px-5 bg-slate-50/50" />
-                                    </div>
+                        {/* Section: Metrics */}
+                        <div>
+                            <div className="flex items-center gap-3 mb-5">
+                                <div className="w-0.5 h-5 bg-teal-accent rounded-full" />
+                                <h3 className="text-sm font-medium text-slate-300 uppercase tracking-widest">Performance Averages</h3>
+                            </div>
+                            <div className="grid grid-cols-3 gap-4">
+                                <div>
+                                    <label className={labelClass}>Avg Weight (kg)</label>
+                                    <input name="avg_weight" type="number" step="0.01" placeholder="0.00" onChange={handleChange} required className={inputClass} />
+                                </div>
+                                <div>
+                                    <label className={labelClass}>Avg Feed (kg/day)</label>
+                                    <input name="avg_feed_consumption" type="number" step="0.01" placeholder="0.00" onChange={handleChange} required className={inputClass} />
+                                </div>
+                                <div>
+                                    <label className={labelClass}>Avg Water (L/day)</label>
+                                    <input name="avg_water_consumption" type="number" step="0.01" placeholder="0.00" onChange={handleChange} required className={inputClass} />
                                 </div>
                             </div>
                         </div>
 
                         {error && (
-                            <div className="p-4 bg-rose-50 text-rose-600 rounded-xl flex items-center gap-3 text-sm font-medium">
-                                <AlertCircle size={18} />
+                            <div className="p-4 bg-rose-500/10 text-rose-400 border border-rose-500/20 rounded-lg flex items-center gap-3 text-sm">
+                                <AlertCircle size={16} />
                                 {error}
                             </div>
                         )}
 
-                        <div className="flex gap-4">
+                        <div className="flex gap-3 pt-2">
                             <button
                                 type="button"
                                 onClick={() => setStep(1)}
-                                className="flex-1 bg-slate-100 text-slate-700 py-4 rounded-xl font-bold hover:bg-slate-200 transition-all"
+                                className="flex-1 bg-white/5 text-slate-400 py-3.5 rounded-lg font-medium text-sm hover:bg-white/10 hover:text-white transition-all border border-white/5"
                             >
-                                Back
+                                ← Back
                             </button>
                             <button
                                 type="submit"
                                 disabled={saving}
-                                className="flex-2 bg-[#4f46e5] text-white py-4 px-8 rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-[#4338ca] hover:shadow-[0_10px_40px_rgba(79,70,229,0.3)] transition-all transform hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 flex items-center justify-center gap-2"
+                                className="flex-[2] bg-[#00c096] text-[#14171a] py-3.5 px-8 rounded-lg font-bold text-sm uppercase tracking-wider hover:bg-[#00d4a6] transition-all disabled:opacity-40 flex items-center justify-center gap-2"
                             >
-                                {saving ? 'Creating...' : <><CheckCircle2 size={20} /> Create farm & Link Owner</>}
+                                {saving ? 'Creating...' : <><CheckCircle2 size={18} /> Create Farm & Link Owner</>}
                             </button>
                         </div>
                     </div>

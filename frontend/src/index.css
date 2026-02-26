@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&family=Outfit:wght@100..900&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -13,11 +15,11 @@
     margin: 0;
     padding: 0;
     min-height: 100vh;
-    background-color: #f8fafc;
-    /* Soft Arctic Blue Background */
-    color: #334155;
-    /* slate-700 */
-    font-family: 'Outfit', 'Inter', system-ui, -apple-system, sans-serif;
+    background-color: #14171a;
+    /* Deep Slate Background */
+    color: #94a3b8;
+    /* slate-400 */
+    font-family: 'Roboto', 'Outfit', sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
@@ -33,12 +35,12 @@
   }
 
   ::-webkit-scrollbar-thumb {
-    background: #f1f5f9;
+    background: #2a2e35;
     border-radius: 10px;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: #e2e8f0;
+    background: #3a3e45;
   }
 }
 
@@ -52,17 +54,23 @@
   }
 
   .glass-effect {
-    background: rgba(255, 255, 255, 0.8);
+    background: rgba(28, 32, 37, 0.7);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.5);
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.01);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  .teal-glow {
+    box-shadow: 0 0 20px rgba(0, 192, 150, 0.15);
+  }
+
+  .teal-glow-strong {
+    box-shadow: 0 0 40px rgba(0, 192, 150, 0.3);
   }
 
   .arctic-card {
-    background: #ffffff;
-    border: 1px solid #f1f5f9;
-    box-shadow: 0 10px 15px -3px rgba(15, 23, 42, 0.03), 0 4px 6px -4px rgba(15, 23, 42, 0.02);
+    background: #1c2025;
+    border: 1px solid rgba(255, 255, 255, 0.05);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
@@ -93,5 +101,41 @@
       opacity: 1;
       transform: translateY(0);
     }
+  }
+
+  /* Click animation: green flash fades out */
+  @keyframes green-fade {
+    0% {
+      background-color: rgba(0, 192, 150, 0.35);
+    }
+
+    100% {
+      background-color: transparent;
+    }
+  }
+
+  .animate-green-fade {
+    animation: green-fade 0.6s ease-out forwards;
+  }
+
+  /* Hover animation: green shimmer fades away on hover (20% teal weight) */
+  .hover-green-fade {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hover-green-fade::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-color: rgba(0, 192, 150, 0.2);
+    opacity: 1;
+    transition: opacity 0.45s ease-out;
+    pointer-events: none;
+    border-radius: inherit;
+  }
+
+  .hover-green-fade:hover::before {
+    opacity: 0;
   }
 }

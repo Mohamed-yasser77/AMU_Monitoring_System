@@ -4,6 +4,7 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.forms.models import model_to_dict
 from django.db.models import Q
+from django.db import transaction
 from .models import Farm, Owner, Flock, Animal, Problem
 import json
 from amu_monitoring.users.models import User
@@ -288,7 +289,7 @@ class FlockListCreateView(View):
 
             flocks = Flock.objects.all()
             if user.role == 'data_operator':
-                flocks = flocks.filter(owner__created_by=user)
+                flocks = flocks.filter(farm__user=user)
                 
             if owner_id:
                 flocks = flocks.filter(owner_id=owner_id)
@@ -367,7 +368,7 @@ class AnimalListCreateView(View):
 
             animals = Animal.objects.all()
             if user.role == 'data_operator':
-                animals = animals.filter(flock__owner__created_by=user)
+                animals = animals.filter(flock__farm__user=user)
             
             if flock_id:
                 animals = animals.filter(flock_id=flock_id)
@@ -509,3 +510,142 @@ class ProblemListCreateView(View):
             return JsonResponse({'error': 'Animal not found'}, status=404)
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=400)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class BulkFlockCreateView(View):
+    """
+    POST /api/flocks/bulk/
+
+    Payload:
+    {
+        "email": "operator@example.com",
+        "farm_id": 1,
+        "owner_id": 1,
+        "flock_code": "FLK01",
+        "species_type": "AVI",
+        "count": 500,
+        "age_in_weeks": 4   (optional)
+    }
+
+    Behaviour:
+    - Validates operator, farm, owner
+    - Composes flock_tag = farm.farm_number + "-" + flock_code
+    - Creates Flock record
+    - Bulk-creates `count` Animal records with tags:
+        {farm_number}-{flock_code}-001 ... {farm_number}-{flock_code}-{count:03d}
+    - Increments farm.total_animals by count
+    - Returns flock details + animals_created count
+    """
+    def post(self, request):
+        try:
+            data = json.loads(request.body)
+            email = data.get('email')
+            if not email:
+                return JsonResponse({'error': 'User email required'}, status=400)
+
+            user = User.objects.get(email_address=email, role='data_operator')
+
+            farm_id = data.get('farm_id')
+            owner_id = data.get('owner_id')
+            flock_code = data.get('flock_code', '').strip().upper()
+            species_type = data.get('species_type')
+            count = data.get('count')
+            age_in_weeks = data.get('age_in_weeks')
+
+            # Validate required fields
+            if not all([farm_id, owner_id, flock_code, species_type, count]):
+                return JsonResponse({'error': 'farm_id, owner_id, flock_code, species_type, and count are required'}, status=400)
+
+            try:
+                count = int(count)
+                if count <= 0:
+                    raise ValueError
+            except (TypeError, ValueError):
+                return JsonResponse({'error': 'count must be a positive integer'}, status=400)
+
+            if count > 10000:
+                return JsonResponse({'error': 'Maximum 10,000 animals per bulk entry'}, status=400)
+
+            farm = Farm.objects.get(id=farm_id, user=user)
+            owner = Owner.objects.get(id=owner_id)
+
+            # Check flock_code uniqueness on this farm
+            if Flock.objects.filter(farm=farm, flock_code=flock_code).exists():
+                return JsonResponse({'error': f'Flock code "{flock_code}" already exists on this farm'}, status=400)
+
+            flock_tag = f"{farm.farm_number}-{flock_code}"
+
+            with transaction.atomic():
+                # Create the flock
+                flock = Flock.objects.create(
+                    owner=owner,
+                    farm=farm,
+                    flock_code=flock_code,
+                    flock_tag=flock_tag,
+                    species_type=species_type,
+                    size=count,
+                    age_in_weeks=age_in_weeks,
+                )
+
+                # Bulk-create animals with auto-generated tags
+                animals = [
+                    Animal(
+                        flock=flock,
+                        animal_tag=f"{flock_tag}-{i:03d}",
+                    )
+                    for i in range(1, count + 1)
+                ]
+                Animal.objects.bulk_create(animals)
+
+                # Increment farm total_animals
+                farm.total_animals += count
+                farm.save(update_fields=['total_animals'])
+
+            return JsonResponse({
+                'message': 'Flock created successfully',
+                'flock_id': flock.id,
+                'flock_tag': flock_tag,
+                'flock_code': flock_code,
+                'species_type': species_type,
+                'animals_created': count,
+                'tag_range': f"{flock_tag}-001 to {flock_tag}-{count:03d}",
+            }, status=201)
+
+        except User.DoesNotExist:
+            return JsonResponse({'error': 'Data operator not found'}, status=404)
+        except Farm.DoesNotExist:
+            return JsonResponse({'error': 'Farm not found or not owned by this operator'}, status=404)
+        except Owner.DoesNotExist:
+            return JsonResponse({'error': 'Owner not found'}, status=404)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=400)
+
+    def get(self, request):
+        """List all flocks with animal count for a given farm."""
+        email = request.GET.get('email')
+        farm_id = request.GET.get('farm_id')
+        if not email:
+            return JsonResponse({'error': 'User email required'}, status=400)
+        try:
+            user = User.objects.get(email_address=email)
+            flocks = Flock.objects.filter(farm__user=user)
+            if farm_id:
+                flocks = flocks.filter(farm_id=farm_id)
+            data = []
+            for f in flocks:
+                data.append({
+                    'id': f.id,
+                    'flock_code': f.flock_code,
+                    'flock_tag': f.flock_tag,
+                    'species_type': f.species_type,
+                    'size': f.size,
+                    'age_in_weeks': f.age_in_weeks,
+                    'farm_id': f.farm_id,
+                    'owner_id': f.owner_id,
+                })
+            return JsonResponse(data, safe=False, status=200)
+        except User.DoesNotExist:
+            return JsonResponse({'error': 'User not found'}, status=404)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)

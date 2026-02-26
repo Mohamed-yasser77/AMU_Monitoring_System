@@ -27,17 +27,17 @@ function Login() {
 
   const validate = () => {
     const newErrors = {}
-    
+
     if (!formData.email) {
       newErrors.email = 'Email is required'
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = 'Email is invalid'
     }
-    
+
     if (!formData.password) {
       newErrors.password = 'Password is required'
     }
-    
+
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
@@ -61,7 +61,7 @@ function Login() {
       const data = await response.json()
       if (response.ok) {
         setUserName(data.user_name)
-        localStorage.setItem('user', JSON.stringify({ 
+        localStorage.setItem('user', JSON.stringify({
           name: data.user_name,
           email: data.email,
           role: data.role,
@@ -69,9 +69,9 @@ function Login() {
           profile_completed: data.profile_completed,
           profile: data.profile
         }))
-        
+
         if (data.role === 'farmer' || data.role === 'data_operator') {
-          setTimeout(() => navigate('/farmer-dashboard'), 1500)
+          setTimeout(() => navigate('/operator-dashboard'), 1500)
         } else if (data.role === 'vet') {
           setTimeout(() => navigate('/vet-dashboard'), 1500)
         } else {
@@ -112,11 +112,10 @@ function Login() {
                   required
                   value={formData.email}
                   onChange={handleChange}
-                  className={`block w-full rounded-md px-3 py-1.5 text-base text-gray-900 shadow-sm ring-1 ring-inset ${
-                    errors.email 
-                      ? 'ring-red-300 focus:ring-red-500' 
+                  className={`block w-full rounded-md px-3 py-1.5 text-base text-gray-900 shadow-sm ring-1 ring-inset ${errors.email
+                      ? 'ring-red-300 focus:ring-red-500'
                       : 'ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-600'
-                  } outline-1 -outline-offset-1 sm:text-sm/6`}
+                    } outline-1 -outline-offset-1 sm:text-sm/6`}
                   placeholder="Enter your email"
                 />
                 {errors.email && (
@@ -148,11 +147,10 @@ function Login() {
                   required
                   value={formData.password}
                   onChange={handleChange}
-                  className={`block w-full rounded-md px-3 py-1.5 text-base text-gray-900 shadow-sm ring-1 ring-inset ${
-                    errors.password 
-                      ? 'ring-red-300 focus:ring-red-500' 
+                  className={`block w-full rounded-md px-3 py-1.5 text-base text-gray-900 shadow-sm ring-1 ring-inset ${errors.password
+                      ? 'ring-red-300 focus:ring-red-500'
                       : 'ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-600'
-                  } outline-1 -outline-offset-1 sm:text-sm/6`}
+                    } outline-1 -outline-offset-1 sm:text-sm/6`}
                   placeholder="Enter your password"
                 />
                 {errors.password && (

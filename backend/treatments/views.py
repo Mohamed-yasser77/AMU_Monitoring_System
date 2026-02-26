@@ -3,7 +3,7 @@ from django.http import JsonResponse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from .models import Treatment
-from farms.models import Farm
+from farms.models import Farm, Flock, Animal
 import json
 from django.core.serializers.json import DjangoJSONEncoder
 from amu_monitoring.users.models import User
@@ -14,55 +14,65 @@ class TreatmentListCreateView(View):
     def get(self, request):
         farm_id = request.GET.get('farm_id')
         email = request.GET.get('email')
-        vet_email = request.GET.get('vet_email') # For vet dashboard
+        vet_email = request.GET.get('vet_email')
+        flock_id = request.GET.get('flock_id')
 
         if not farm_id and not email and not vet_email:
             return JsonResponse({'error': 'Farm ID, Email or Vet Email required'}, status=400)
         
         try:
             if farm_id:
-                treatments = Treatment.objects.filter(farm_id=farm_id).order_by('-date').values()
+                qs = Treatment.objects.filter(farm_id=farm_id)
+                if flock_id:
+                    qs = qs.filter(flock_id=flock_id)
+                treatments = qs.order_by('-date').values(
+                    'id', 'antibiotic_name', 'reason', 'treated_for', 'date', 'status',
+                    'flock_id', 'flock__flock_tag', 'flock__flock_code',
+                    'animal_id', 'animal__animal_tag',
+                )
+                return JsonResponse(list(treatments), safe=False, status=200)
+
             elif vet_email:
-                # For Vet Dashboard: Get assigned treatments
                 try:
                     vet = User.objects.get(email_address=vet_email, role='vet')
-                    # Check for unassigned treatments in vet's district if vet has capacity
-                    # This is "Lazy Assignment" to pick up queued items
                     active_count = Treatment.objects.filter(vet=vet, status='pending').count()
                     if active_count < 7 and vet.district:
-                         # Find unassigned pending treatments in district
-                         unassigned = Treatment.objects.filter(
-                             farm__district=vet.district,
-                             vet__isnull=True,
-                             status='pending'
-                         ).first() # Just pick one
-                         
-                         if unassigned:
-                             unassigned.vet = vet
-                             unassigned.save()
+                        unassigned = Treatment.objects.filter(
+                            farm__district=vet.district,
+                            vet__isnull=True,
+                            status='pending'
+                        ).first()
+                        if unassigned:
+                            unassigned.vet = vet
+                            unassigned.save()
 
-                    pending_treatments = Treatment.objects.filter(vet=vet, status='pending').order_by('date').values(
-                        'id', 'antibiotic_name', 'reason', 'treated_for', 'date', 
-                        'farm__name', 'farm__farm_number', 'farm__village', 'farm__district', 'status'
+                    base_fields = (
+                        'id', 'antibiotic_name', 'reason', 'treated_for', 'date',
+                        'farm__name', 'farm__farm_number', 'farm__village', 'farm__district', 'status',
+                        'flock_id', 'flock__flock_tag', 'animal_id', 'animal__animal_tag',
                     )
-                    
-                    history_treatments = Treatment.objects.filter(vet=vet, status='approved').order_by('-date')[:10].values(
-                        'id', 'antibiotic_name', 'reason', 'treated_for', 'date', 
-                        'farm__name', 'farm__farm_number', 'farm__village', 'farm__district', 'status'
-                    )
-                    
+                    pending_treatments = Treatment.objects.filter(vet=vet, status='pending').order_by('date').values(*base_fields)
+                    history_treatments = Treatment.objects.filter(vet=vet, status='approved').order_by('-date')[:10].values(*base_fields)
+
                     return JsonResponse({
                         'pending': list(pending_treatments),
                         'history': list(history_treatments)
                     }, status=200)
                 except User.DoesNotExist:
-                     return JsonResponse({'error': 'Vet not found'}, status=404)
+                    return JsonResponse({'error': 'Vet not found'}, status=404)
+
             else:
-                # Filter by user email (Farmer Dashboard)
-                treatments = Treatment.objects.filter(farm__user__email_address=email).order_by('-date').values(
-                    'id', 'antibiotic_name', 'reason', 'treated_for', 'date', 'farm__name', 'farm__farm_number', 'status'
+                # Operator / farmer dashboard - filter by user email
+                treatments = Treatment.objects.filter(
+                    farm__user__email_address=email
+                ).order_by('-date').values(
+                    'id', 'antibiotic_name', 'reason', 'treated_for', 'date',
+                    'farm__name', 'farm__farm_number', 'status',
+                    'flock_id', 'flock__flock_tag', 'flock__flock_code',
+                    'animal_id', 'animal__animal_tag',
                 )
                 return JsonResponse(list(treatments), safe=False, status=200)
+
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=500)
 
@@ -71,20 +81,34 @@ class TreatmentListCreateView(View):
             data = json.loads(request.body)
             email = data.get('email')
             farm_id = data.get('farm')
+            flock_id = data.get('flock_id')
+            animal_id = data.get('animal_id')
             
             if not farm_id:
                 return JsonResponse({'error': 'Farm ID required'}, status=400)
-            
             if not email:
                 return JsonResponse({'error': 'User email required'}, status=400)
 
             user = User.objects.get(email_address=email)
             farm = Farm.objects.get(id=farm_id)
-            
-            # Auto-assign vet
+
+            flock = None
+            animal = None
+
+            if flock_id:
+                flock = Flock.objects.get(id=flock_id)
+                # Validate flock belongs to this farm
+                if flock.farm_id != farm.id:
+                    return JsonResponse({'error': 'Flock does not belong to this farm'}, status=400)
+
+            if animal_id:
+                if not flock:
+                    return JsonResponse({'error': 'flock_id required when animal_id is provided'}, status=400)
+                animal = Animal.objects.get(id=animal_id, flock=flock)
+
+            # Auto-assign vet by district
             assigned_vet = None
             if farm.district:
-                # Find vets in district with < 7 pending treatments
                 vets = User.objects.filter(role='vet', district=farm.district)
                 for vet in vets:
                     pending_count = Treatment.objects.filter(vet=vet, status='pending').count()
@@ -94,6 +118,8 @@ class TreatmentListCreateView(View):
             
             treatment = Treatment.objects.create(
                 farm=farm,
+                flock=flock,
+                animal=animal,
                 vet=assigned_vet,
                 recorded_by=user,
                 status='pending',
@@ -103,23 +129,34 @@ class TreatmentListCreateView(View):
                 date=data.get('date')
             )
             
-            return JsonResponse({'message': 'Treatment logged successfully', 'id': treatment.id}, status=201)
+            return JsonResponse({
+                'message': 'Treatment logged successfully',
+                'id': treatment.id,
+                'flock_id': treatment.flock_id,
+                'animal_id': treatment.animal_id,
+            }, status=201)
+
         except User.DoesNotExist:
             return JsonResponse({'error': 'User not found'}, status=404)
         except Farm.DoesNotExist:
             return JsonResponse({'error': 'Farm not found'}, status=404)
+        except Flock.DoesNotExist:
+            return JsonResponse({'error': 'Flock not found'}, status=404)
+        except Animal.DoesNotExist:
+            return JsonResponse({'error': 'Animal not found in specified flock'}, status=404)
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=400)
+
 
 @method_decorator(csrf_exempt, name='dispatch')
 class TreatmentActionView(View):
     def post(self, request, treatment_id):
         try:
             data = json.loads(request.body)
-            action = data.get('action') # 'approve' or 'reject'
+            action = data.get('action')  # 'approve' or 'reject'
             
             if action not in ['approve', 'reject']:
-                 return JsonResponse({'error': 'Invalid action'}, status=400)
+                return JsonResponse({'error': 'Invalid action'}, status=400)
 
             treatment = Treatment.objects.get(id=treatment_id)
             
