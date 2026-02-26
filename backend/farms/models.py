@@ -12,6 +12,7 @@ SPECIES_CHOICES = [
     ('PIS', 'Pisces (Fish)'),
     ('CAM', 'Camelids (Camels)'),
     ('API', 'Apiculture (Bees)'),
+    ('MIX', 'Mixed (Multi-species)'),
 ]
 
 
@@ -68,6 +69,9 @@ class Flock(models.Model):
     species_type = models.CharField(max_length=20, choices=SPECIES_CHOICES)
     size = models.IntegerField(help_text="Number of animals in this flock")
     age_in_weeks = models.IntegerField(blank=True, null=True)
+    avg_weight = models.FloatField(help_text="Average weight in kg", default=0.0)
+    avg_feed_consumption = models.FloatField(help_text="Average feed consumption in kg/day", default=0.0)
+    avg_water_consumption = models.FloatField(help_text="Average water consumption in litres/day", default=0.0)
 
     class Meta:
         unique_together = ('farm', 'flock_code')

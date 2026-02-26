@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, CheckCircle2, AlertCircle, X, Layers } from 'lucide-react';
+import { Plus, CheckCircle2, AlertCircle, X, Layers, Activity } from 'lucide-react';
 
 const inputClass = "w-full rounded-lg bg-[#14171a] border border-white/10 text-slate-200 placeholder:text-slate-600 py-3.5 px-4 text-sm focus:outline-none focus:border-[#00c096]/40 focus:ring-2 focus:ring-[#00c096]/10 transition-all";
 const labelClass = "block text-[10px] font-medium text-slate-500 uppercase tracking-widest mb-2";
@@ -14,7 +14,8 @@ const speciesMapping = {
     'LEP': 'Leporine (Rabbits)',
     'PIS': 'Pisces (Fish)',
     'CAM': 'Camelids (Camels)',
-    'API': 'Apiculture (Bees)'
+    'API': 'Apiculture (Bees)',
+    'MIX': 'Mixed (Multi-species)'
 };
 
 const FlockForm = ({ onCancel, onSuccess, farms, userEmail }) => {
@@ -27,7 +28,10 @@ const FlockForm = ({ onCancel, onSuccess, farms, userEmail }) => {
         flock_code: '',
         species_type: 'AVI',
         count: '',
-        age_in_weeks: ''
+        age_in_weeks: '',
+        avg_weight: '',
+        avg_feed_consumption: '',
+        avg_water_consumption: ''
     });
 
     const handleChange = (e) => {
@@ -55,7 +59,10 @@ const FlockForm = ({ onCancel, onSuccess, farms, userEmail }) => {
             flock_code: formData.flock_code,
             species_type: formData.species_type,
             count: Number(formData.count),
-            age_in_weeks: formData.age_in_weeks ? Number(formData.age_in_weeks) : null
+            age_in_weeks: formData.age_in_weeks ? Number(formData.age_in_weeks) : null,
+            avg_weight: Number(formData.avg_weight) || 0,
+            avg_feed_consumption: Number(formData.avg_feed_consumption) || 0,
+            avg_water_consumption: Number(formData.avg_water_consumption) || 0
         };
 
         try {
@@ -194,6 +201,54 @@ const FlockForm = ({ onCancel, onSuccess, farms, userEmail }) => {
                             onChange={handleChange}
                             className={inputClass}
                         />
+                    </div>
+
+                    <div className="col-span-2 border-t border-white/5 pt-5 mt-2">
+                        <div className="flex items-center gap-2 mb-4">
+                            <Activity size={12} className="text-[#00c096]" />
+                            <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Growth & Consumption Metrics</h3>
+                        </div>
+                        <div className="grid grid-cols-3 gap-4">
+                            <div>
+                                <label className={labelClass}>Avg Weight (kg)</label>
+                                <input
+                                    name="avg_weight"
+                                    type="number"
+                                    step="0.01"
+                                    placeholder="0.00"
+                                    value={formData.avg_weight}
+                                    onChange={handleChange}
+                                    required
+                                    className={inputClass}
+                                />
+                            </div>
+                            <div>
+                                <label className={labelClass}>Feed (kg/day)</label>
+                                <input
+                                    name="avg_feed_consumption"
+                                    type="number"
+                                    step="0.01"
+                                    placeholder="0.00"
+                                    value={formData.avg_feed_consumption}
+                                    onChange={handleChange}
+                                    required
+                                    className={inputClass}
+                                />
+                            </div>
+                            <div>
+                                <label className={labelClass}>Water (L/day)</label>
+                                <input
+                                    name="avg_water_consumption"
+                                    type="number"
+                                    step="0.01"
+                                    placeholder="0.00"
+                                    value={formData.avg_water_consumption}
+                                    onChange={handleChange}
+                                    required
+                                    className={inputClass}
+                                />
+                            </div>
+                        </div>
                     </div>
                 </div>
 

@@ -552,6 +552,11 @@ class BulkFlockCreateView(View):
             species_type = data.get('species_type')
             count = data.get('count')
             age_in_weeks = data.get('age_in_weeks')
+            
+            # New Metrics
+            avg_weight = data.get('avg_weight', 0.0)
+            avg_feed_consumption = data.get('avg_feed_consumption', 0.0)
+            avg_water_consumption = data.get('avg_water_consumption', 0.0)
 
             # Validate required fields
             if not all([farm_id, owner_id, flock_code, species_type, count]):
@@ -586,6 +591,9 @@ class BulkFlockCreateView(View):
                     species_type=species_type,
                     size=count,
                     age_in_weeks=age_in_weeks,
+                    avg_weight=float(avg_weight),
+                    avg_feed_consumption=float(avg_feed_consumption),
+                    avg_water_consumption=float(avg_water_consumption),
                 )
 
                 # Bulk-create animals with auto-generated tags

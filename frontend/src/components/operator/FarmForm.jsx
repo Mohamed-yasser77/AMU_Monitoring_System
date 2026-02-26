@@ -22,11 +22,8 @@ const FarmForm = ({ onCancel, onSuccess, owners, userEmail }) => {
         village: '',
         farm_number: '',
         farm_type: 'commercial',
-        species_type: 'AVI',
-        total_animals: '',
-        avg_weight: '',
-        avg_feed_consumption: '',
-        avg_water_consumption: ''
+        farm_type: 'commercial',
+        species_type: 'MIX'
     });
 
     const handleChange = (e) => {
@@ -42,10 +39,10 @@ const FarmForm = ({ onCancel, onSuccess, owners, userEmail }) => {
         const payload = {
             email: userEmail,
             ...formData,
-            total_animals: Number(formData.total_animals),
-            avg_weight: Number(formData.avg_weight),
-            avg_feed_consumption: Number(formData.avg_feed_consumption),
-            avg_water_consumption: Number(formData.avg_water_consumption)
+            total_animals: 0,
+            avg_weight: 0,
+            avg_feed_consumption: 0,
+            avg_water_consumption: 0
         };
 
         if (useExistingOwner) {
@@ -196,18 +193,15 @@ const FarmForm = ({ onCancel, onSuccess, owners, userEmail }) => {
                                     </select>
                                 </div>
                                 <div>
-                                    <label className={labelClass}>Species Category</label>
+                                    <label className={labelClass}>Primary Species (Optional)</label>
                                     <select name="species_type" value={formData.species_type} onChange={handleChange} className={inputClass + " appearance-none"}>
+                                        <option value="MIX" className="bg-[#1c2025]">Mixed (Multi-species)</option>
                                         <option value="AVI" className="bg-[#1c2025]">Avian (Poultry)</option>
                                         <option value="BOV" className="bg-[#1c2025]">Bovine (Cattle)</option>
                                         <option value="SUI" className="bg-[#1c2025]">Suine (Pigs)</option>
                                         <option value="CAP" className="bg-[#1c2025]">Caprine (Goats)</option>
                                         <option value="OVI" className="bg-[#1c2025]">Ovine (Sheep)</option>
                                     </select>
-                                </div>
-                                <div className="col-span-2">
-                                    <label className={labelClass}>Total Animal Count</label>
-                                    <input name="total_animals" type="number" placeholder="0" onChange={handleChange} required className={inputClass} />
                                 </div>
                             </div>
                         </div>
@@ -234,35 +228,6 @@ const FarmForm = ({ onCancel, onSuccess, owners, userEmail }) => {
                             </div>
                         </div>
 
-                        {/* Section: Metrics */}
-                        <div>
-                            <div className="flex items-center gap-3 mb-5">
-                                <div className="w-0.5 h-5 bg-teal-accent rounded-full" />
-                                <h3 className="text-sm font-medium text-slate-300 uppercase tracking-widest">Performance Averages</h3>
-                            </div>
-                            <div className="grid grid-cols-3 gap-4">
-                                <div>
-                                    <label className={labelClass}>Avg Weight (kg)</label>
-                                    <input name="avg_weight" type="number" step="0.01" placeholder="0.00" onChange={handleChange} required className={inputClass} />
-                                </div>
-                                <div>
-                                    <label className={labelClass}>Avg Feed (kg/day)</label>
-                                    <input name="avg_feed_consumption" type="number" step="0.01" placeholder="0.00" onChange={handleChange} required className={inputClass} />
-                                </div>
-                                <div>
-                                    <label className={labelClass}>Avg Water (L/day)</label>
-                                    <input name="avg_water_consumption" type="number" step="0.01" placeholder="0.00" onChange={handleChange} required className={inputClass} />
-                                </div>
-                            </div>
-                        </div>
-
-                        {error && (
-                            <div className="p-4 bg-rose-500/10 text-rose-400 border border-rose-500/20 rounded-lg flex items-center gap-3 text-sm">
-                                <AlertCircle size={16} />
-                                {error}
-                            </div>
-                        )}
-
                         <div className="flex gap-3 pt-2">
                             <button
                                 type="button"
@@ -279,6 +244,13 @@ const FarmForm = ({ onCancel, onSuccess, owners, userEmail }) => {
                                 {saving ? 'Creating...' : <><CheckCircle2 size={18} /> Create Farm & Link Owner</>}
                             </button>
                         </div>
+                    </div>
+                )}
+
+                {error && (
+                    <div className="p-4 bg-rose-500/10 text-rose-400 border border-rose-500/20 rounded-lg flex items-center gap-3 text-sm">
+                        <AlertCircle size={16} />
+                        {error}
                     </div>
                 )}
             </form>

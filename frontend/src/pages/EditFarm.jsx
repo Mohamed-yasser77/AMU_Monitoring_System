@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 
 const speciesOptions = [
+    { value: 'MIX', label: 'Mixed (Multi-species)' },
     { value: 'AVI', label: 'Avian (Poultry/Birds)' },
     { value: 'BOV', label: 'Bovine (Cattle)' },
     { value: 'SUI', label: 'Suine (Pigs/Swine)' },
@@ -24,11 +25,7 @@ function EditFarm() {
         district: '',
         farm_number: '',
         farm_type: '',
-        species_type: '',
-        total_animals: '',
-        avg_weight: '',
-        avg_feed_consumption: '',
-        avg_water_consumption: ''
+        species_type: ''
     })
     const [loading, setLoading] = useState(true)
 
@@ -194,25 +191,7 @@ function EditFarm() {
                         </div>
                     </div>
 
-                    {/* Metrics */}
-                    <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-2">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700">Total No of Animals</label>
-                            <input type="number" name="total_animals" required value={formData.total_animals} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm border p-2" />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700">Average Weight (kg)</label>
-                            <input type="number" step="0.01" name="avg_weight" required value={formData.avg_weight} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm border p-2" />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700">Avg Feed Consumption (kg/day)</label>
-                            <input type="number" step="0.01" name="avg_feed_consumption" required value={formData.avg_feed_consumption} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm border p-2" />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700">Avg Water Consumption (litres/day)</label>
-                            <input type="number" step="0.01" name="avg_water_consumption" required value={formData.avg_water_consumption} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm border p-2" />
-                        </div>
-                    </div>
+                    {/* Metrics Section Removed - Now in Flock Level */}
 
                     <div className="flex justify-end space-x-3">
                         <button type="button" onClick={() => navigate('/operator-dashboard')} className="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
