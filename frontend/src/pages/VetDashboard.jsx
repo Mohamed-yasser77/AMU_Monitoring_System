@@ -122,6 +122,10 @@ function VetDashboard() {
     }
 
     fetchData()
+
+    // Auto-refresh data every 30 seconds for real-time request tracking
+    const interval = setInterval(fetchData, 30000)
+    return () => clearInterval(interval)
   }, [navigate, user?.email])
 
   // Fetch flocks when farm is selected in prescription form

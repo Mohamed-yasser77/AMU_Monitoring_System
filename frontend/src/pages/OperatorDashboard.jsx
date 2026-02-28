@@ -4,7 +4,7 @@ import Sidebar from '../components/operator/Sidebar';
 import SearchableTable from '../components/operator/SearchableTable';
 import FarmForm from '../components/operator/FarmForm';
 import FlockForm from '../components/operator/FlockForm';
-import { Plus, LayoutGrid, Activity, Home, Users, ChevronRight, TrendingUp, Search, Settings, AlertCircle, Layers, FileText, XCircle, Bell } from 'lucide-react';
+import { Plus, LayoutGrid, Activity, Home, Users, ChevronRight, TrendingUp, Search, Settings, AlertCircle, CheckCircle, Layers, FileText, XCircle, Bell } from 'lucide-react';
 
 const speciesMapping = {
     'AVI': 'Avian',
@@ -89,8 +89,13 @@ const OperatorDashboard = () => {
     useEffect(() => {
         if (!user) { navigate('/login'); return; }
         if (user.role !== 'data_operator' && user.role !== 'farmer') { navigate('/login'); return; }
+
         fetchData();
-    }, []);
+
+        // Auto-refresh data every 30 seconds to update safety status in real-time
+        const interval = setInterval(fetchData, 30000);
+        return () => clearInterval(interval);
+    }, [user?.email]);
 
     const handleLogout = () => {
         localStorage.removeItem('user');
@@ -386,6 +391,29 @@ const OperatorDashboard = () => {
                                 )
                             },
                             { header: 'Age (Weeks)', accessor: 'age_in_weeks' },
+                            {
+                                header: 'Safety Status',
+                                render: (row) => (
+                                    <div className="flex flex-col gap-1">
+                                        {row.is_under_withdrawal ? (
+                                            <>
+                                                <span className="bg-rose-500/10 text-rose-400 text-[10px] px-2 py-0.5 rounded border border-rose-500/20 font-bold uppercase tracking-wider flex items-center gap-1 w-fit">
+                                                    <AlertCircle size={10} />
+                                                    Quarantine
+                                                </span>
+                                                <span className="text-[10px] text-slate-500 font-medium whitespace-nowrap">
+                                                    Safe: {new Date(row.safe_harvest_date).toLocaleDateString()}
+                                                </span>
+                                            </>
+                                        ) : (
+                                            <span className="bg-emerald-500/10 text-emerald-400 text-[10px] px-2 py-0.5 rounded border border-emerald-500/20 font-bold uppercase tracking-wider flex items-center gap-1 w-fit">
+                                                <CheckCircle size={10} />
+                                                Cleared
+                                            </span>
+                                        )}
+                                    </div>
+                                )
+                            },
                             { header: 'Farm', accessor: 'farm_name' },
                         ]}
                         actions={

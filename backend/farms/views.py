@@ -6,8 +6,11 @@ from django.forms.models import model_to_dict
 from django.db.models import Q
 from django.db import transaction
 from .models import Farm, Owner, Flock, Animal, Problem
+from treatments.models import Treatment
+from reference_data.models import MRLLimit
 import json
 from amu_monitoring.users.models import User
+from datetime import timedelta, date
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -84,7 +87,23 @@ class FarmDetailView(View):
     def get(self, request, farm_id):
         try:
             farm = Farm.objects.get(id=farm_id)
-            return JsonResponse(model_to_dict(farm), status=200)
+            data = model_to_dict(farm)
+            
+            # Add flock data with withdrawal status
+            flocks_data = []
+            for flock in farm.flocks.all():
+                status = flock.withdrawal_status
+                flocks_data.append({
+                    'id': flock.id,
+                    'flock_tag': flock.flock_tag,
+                    'species_type': flock.species_type,
+                    'size': flock.size,
+                    'age_in_weeks': flock.age_in_weeks,
+                    'is_under_withdrawal': status['is_under_withdrawal'],
+                    'safe_harvest_date': status['safe_harvest_date'],
+                })
+            data['flocks'] = flocks_data
+            return JsonResponse(data, status=200)
         except Farm.DoesNotExist:
             return JsonResponse({'error': 'Farm not found'}, status=404)
         except Exception as e:
@@ -197,28 +216,27 @@ class OwnerDetailView(View):
 
             flocks_data = []
             for flock in flocks:
-                animals = flock.animals.all()
+                status = flock.withdrawal_status
                 animals_data = []
-                for animal in animals:
-                    animals_data.append(
-                        {
-                            'id': animal.id,
-                            'animal_tag': animal.animal_tag,
-                            'date_of_birth': animal.date_of_birth.isoformat() if animal.date_of_birth else None,
-                            'sex': animal.sex,
-                        }
-                    )
-                flocks_data.append(
-                    {
-                        'id': flock.id,
-                        'flock_tag': flock.flock_tag,
-                        'species_type': flock.species_type,
-                        'size': flock.size,
-                        'age_in_weeks': flock.age_in_weeks,
-                        'farm_id': flock.farm_id,
-                        'animals': animals_data,
-                    }
-                )
+                for animal in flock.animals.all():
+                    animals_data.append({
+                        'id': animal.id,
+                        'animal_tag': animal.animal_tag,
+                        'date_of_birth': animal.date_of_birth.isoformat() if animal.date_of_birth else None,
+                        'sex': animal.sex,
+                    })
+                
+                flocks_data.append({
+                    'id': flock.id,
+                    'flock_tag': flock.flock_tag,
+                    'species_type': flock.species_type,
+                    'size': flock.size,
+                    'age_in_weeks': flock.age_in_weeks,
+                    'farm_id': flock.farm_id,
+                    'animals': animals_data,
+                    'is_under_withdrawal': status['is_under_withdrawal'],
+                    'safe_harvest_date': status['safe_harvest_date'],
+                })
 
             problems_data = []
             for problem in problems:
@@ -302,15 +320,19 @@ class FlockListCreateView(View):
 
             data = []
             for flock in flocks:
+                status = flock.withdrawal_status
                 data.append(
                     {
                         'id': flock.id,
                         'owner_id': flock.owner_id,
                         'farm_id': flock.farm_id,
+                        'farm_name': flock.farm.name if flock.farm else 'N/A',
                         'flock_tag': flock.flock_tag,
                         'species_type': flock.species_type,
                         'size': flock.size,
                         'age_in_weeks': flock.age_in_weeks,
+                        'safe_harvest_date': status['safe_harvest_date'],
+                        'is_under_withdrawal': status['is_under_withdrawal'],
                     }
                 )
             return JsonResponse(data, safe=False, status=200)

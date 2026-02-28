@@ -43,6 +43,7 @@ class MRLLimit(models.Model):
     species_group = models.ForeignKey(SpeciesGroup, on_delete=models.CASCADE)
     tissue = models.ForeignKey(Tissue, on_delete=models.CASCADE)
     mrl_mgkg = models.FloatField()
+    withdrawal_days = models.IntegerField(help_text="Standard withdrawal period in days", null=True, blank=True)
 
     class Meta:
         unique_together = ('molecule', 'species_group', 'tissue')

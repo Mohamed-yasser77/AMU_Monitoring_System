@@ -79,6 +79,57 @@ class Flock(models.Model):
     def __str__(self):
         return f"{self.flock_tag} ({self.size} animals)"
 
+    @property
+    def withdrawal_status(self):
+        """
+        Calculates safety status strictly based on treatment dates and withdrawal periods.
+        Does NOT use animal age or harvest age.
+        Checks ALL approved treatments for this flock to find the latest safe harvest date.
+        """
+        from treatments.models import Treatment
+        from reference_data.models import MRLLimit
+        from datetime import date, timedelta
+        
+        # Get all approved treatments for this flock
+        approved_treatments = Treatment.objects.filter(
+            flock=self, 
+            status='approved'
+        )
+
+        max_safe_date = None
+        is_under_withdrawal = False
+        today = date.today()
+
+        for treatment in approved_treatments:
+            if not self.species_type:
+                continue
+                
+            mrls = MRLLimit.objects.filter(
+                molecule__name=treatment.antibiotic_name,
+                species_group__code=self.species_type
+            )
+            
+            max_days = 0
+            if mrls.exists():
+                days_list = [mrl.withdrawal_days for mrl in mrls if mrl.withdrawal_days is not None]
+                if days_list:
+                    max_days = max(days_list)
+            
+            if max_days > 0:
+                # Safe date = date treatment was administered + withdrawal days
+                treatment_safe_date = treatment.date + timedelta(days=max_days)
+                
+                if max_safe_date is None or treatment_safe_date > max_safe_date:
+                    max_safe_date = treatment_safe_date
+        
+        if max_safe_date and today <= max_safe_date:
+            is_under_withdrawal = True
+            
+        return {
+            'safe_harvest_date': max_safe_date.isoformat() if max_safe_date else None,
+            'is_under_withdrawal': is_under_withdrawal
+        }
+
 
 class Animal(models.Model):
     """
