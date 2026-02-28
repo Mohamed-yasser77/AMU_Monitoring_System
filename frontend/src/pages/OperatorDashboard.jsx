@@ -4,7 +4,7 @@ import Sidebar from '../components/operator/Sidebar';
 import SearchableTable from '../components/operator/SearchableTable';
 import FarmForm from '../components/operator/FarmForm';
 import FlockForm from '../components/operator/FlockForm';
-import { Plus, LayoutGrid, Activity, Home, Users, ChevronRight, TrendingUp, Search, Settings, AlertCircle, Layers } from 'lucide-react';
+import { Plus, LayoutGrid, Activity, Home, Users, ChevronRight, TrendingUp, Search, Settings, AlertCircle, Layers, FileText, XCircle, Bell } from 'lucide-react';
 
 const speciesMapping = {
     'AVI': 'Avian',
@@ -38,10 +38,15 @@ const OperatorDashboard = () => {
     const [farms, setFarms] = useState([]);
     const [flocks, setFlocks] = useState([]);
     const [treatments, setTreatments] = useState([]);
+    const [vetDirectives, setVetDirectives] = useState([]);
     const [problems, setProblems] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showFarmForm, setShowFarmForm] = useState(false);
     const [showFlockForm, setShowFlockForm] = useState(false);
+    const [selectedNotes, setSelectedNotes] = useState(null);
+    const [showNotifications, setShowNotifications] = useState(false);
+    const [readDirectives, setReadDirectives] = useState(() => JSON.parse(localStorage.getItem('readDirectives')) || []);
+    const [highlightedTreatmentId, setHighlightedTreatmentId] = useState(null);
 
     const navigate = useNavigate();
     const user = JSON.parse(localStorage.getItem('user'));
@@ -66,7 +71,13 @@ const OperatorDashboard = () => {
             setOwners(ownersData);
             setFarms(farmsData);
             setFlocks(flocksData);
-            setTreatments(treatmentsData);
+
+            // Separate operator-logged requests from direct vet prescriptions
+            const operatorLogs = treatmentsData.filter(t => t.recorded_by__role !== 'vet');
+            const vetLogs = treatmentsData.filter(t => t.recorded_by__role === 'vet');
+
+            setTreatments(operatorLogs);
+            setVetDirectives(vetLogs);
             setProblems(problemsData);
         } catch (err) {
             console.error('Fetch error:', err);
@@ -90,6 +101,30 @@ const OperatorDashboard = () => {
     const totalLivestock = flocks.reduce((acc, f) => acc + (f.size || 0), 0);
     const pendingCount = treatments.filter(t => t.status === 'pending').length;
     const approvedCount = treatments.filter(t => t.status === 'approved').length;
+
+    // Notifications logic: Vet directives + Approved/Rejected operator requests
+    const operatorNotifications = treatments.filter(t => t.status === 'approved' || t.status === 'rejected');
+    const allNotifications = [...vetDirectives, ...operatorNotifications].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    const unreadDirectivesCount = allNotifications.filter(d => !readDirectives.includes(d.id)).length;
+
+    const markAsRead = (id) => {
+        if (!readDirectives.includes(id)) {
+            const updated = [...readDirectives, id];
+            setReadDirectives(updated);
+            localStorage.setItem('readDirectives', JSON.stringify(updated));
+        }
+    };
+
+    const handleNotificationClick = (notification) => {
+        markAsRead(notification.id);
+        setShowNotifications(false);
+        setActiveTab('treatments');
+
+        // Highlight logic
+        setHighlightedTreatmentId(notification.id);
+        setTimeout(() => setHighlightedTreatmentId(null), 5000); // Clear highlight after 5s
+    };
 
     // Aggregate flocks by species for the Species Mix card
     const speciesCounts = flocks.reduce((acc, f) => {
@@ -367,75 +402,192 @@ const OperatorDashboard = () => {
 
             case 'treatments':
                 return (
-                    <SearchableTable
-                        title="Treatment Logs"
-                        data={treatments}
-                        searchPlaceholder="Search by antibiotic, farm, date..."
-                        columns={[
-                            {
-                                header: 'Farm',
-                                render: (row) => (
-                                    <div>
-                                        <p className="text-white font-medium text-sm">{row.farm__name}</p>
-                                        <p className="text-slate-500 text-[10px]">{row.farm__farm_number}</p>
+                    <div className="space-y-8 animate-fade-in">
+                        {/* Vet Directives Section */}
+                        {vetDirectives.length > 0 && (
+                            <div className="bg-teal-accent/5 rounded-2xl border border-teal-accent/20 overflow-hidden shadow-lg shadow-teal-accent/5">
+                                <div className="p-6 border-b border-teal-accent/20 flex justify-between items-center bg-teal-accent/10">
+                                    <div className="flex items-center gap-3">
+                                        <div className="bg-teal-accent text-[#14171a] p-2 rounded-xl">
+                                            <AlertCircle size={20} />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-white font-bold text-lg flex items-center gap-2">
+                                                Veterinarian Prescriptions (Direct)
+                                            </h3>
+                                            <p className="text-[11px] text-teal-accent/70 uppercase tracking-widest font-medium mt-0.5">Treatments ordered directly by vets for your farms</p>
+                                        </div>
                                     </div>
-                                )
-                            },
-                            {
-                                header: 'Target',
-                                render: (row) => (
-                                    <div className="flex flex-col">
-                                        {row.animal__animal_tag ? (
-                                            <>
-                                                <span className="text-white font-bold text-xs">{row.animal__animal_tag}</span>
-                                                <span className="text-[10px] text-slate-500 uppercase tracking-tighter text-teal-accent/70">Individual Animal</span>
-                                            </>
-                                        ) : row.flock__flock_tag ? (
-                                            <>
-                                                <span className="text-white font-medium text-xs font-mono">{row.flock__flock_tag}</span>
-                                                <span className="text-[10px] text-slate-500 uppercase tracking-tighter text-indigo-400/70">Whole Flock</span>
-                                            </>
-                                        ) : (
-                                            <span className="text-slate-400 text-xs italic">Whole Farm</span>
-                                        )}
-                                    </div>
-                                )
-                            },
-                            { header: 'Antibiotic', accessor: 'antibiotic_name' },
-                            {
-                                header: 'Reason',
-                                render: (row) => (
-                                    <span className="capitalize text-slate-300">{(row.reason || '').replace(/_/g, ' ')}</span>
-                                )
-                            },
-                            { header: 'Date', accessor: 'date' },
-                            {
-                                header: 'Status',
-                                render: (row) => {
-                                    const cls = {
-                                        'pending': 'bg-amber-500/10 text-amber-400 border-amber-500/20',
-                                        'approved': 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
-                                        'rejected': 'bg-rose-500/10 text-rose-400 border-rose-500/20'
-                                    };
-                                    const status = row.status || 'pending';
-                                    return (
-                                        <span className={`px-3 py-1 rounded-md text-[10px] uppercase font-medium border ${cls[status] || cls.pending}`}>
-                                            {status}
-                                        </span>
-                                    );
+                                </div>
+                                <SearchableTable
+                                    title=""
+                                    data={vetDirectives}
+                                    highlightRowId={highlightedTreatmentId}
+                                    searchPlaceholder="Search directives..."
+                                    columns={[
+                                        {
+                                            header: 'Farm & Target',
+                                            render: (row) => (
+                                                <div className="flex flex-col gap-1">
+                                                    <span className="text-white font-medium text-sm">{row.farm__name}</span>
+                                                    {row.animal__animal_tag ? (
+                                                        <span className="text-[10px] text-teal-accent font-bold uppercase tracking-wider">Animal: {row.animal__animal_tag}</span>
+                                                    ) : row.flock__flock_tag ? (
+                                                        <span className="text-[10px] text-indigo-400 font-bold uppercase tracking-wider">Flock: {row.flock__flock_tag}</span>
+                                                    ) : (
+                                                        <span className="text-slate-400 text-xs italic">Whole Farm</span>
+                                                    )}
+                                                </div>
+                                            )
+                                        },
+                                        {
+                                            header: 'Antibiotic & Dosage',
+                                            render: (row) => (
+                                                <div className="flex flex-col gap-1">
+                                                    <span className="text-white font-medium text-sm">{row.antibiotic_name}</span>
+                                                    {(row.dosage || row.method_intake) && (
+                                                        <div className="flex flex-wrap gap-1.5 mt-0.5">
+                                                            {row.dosage && <span className="bg-teal-accent/10 text-teal-accent text-[9px] px-1.5 py-0.5 rounded border border-teal-accent/20 uppercase font-medium">{row.dosage}</span>}
+                                                            {row.method_intake && <span className="bg-white/5 text-slate-400 text-[9px] px-1.5 py-0.5 rounded border border-white/10 uppercase font-medium">{row.method_intake}</span>}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )
+                                        },
+                                        {
+                                            header: 'Instructions',
+                                            render: (row) => (
+                                                <div className="flex flex-col gap-2 items-start">
+                                                    <span className="capitalize text-slate-300 text-xs font-medium">For: {row.treated_for}</span>
+                                                    {row.vet_notes && (
+                                                        <button
+                                                            onClick={() => {
+                                                                markAsRead(row.id);
+                                                                setSelectedNotes({
+                                                                    antibiotic: row.antibiotic_name,
+                                                                    notes: row.vet_notes,
+                                                                    date: row.date,
+                                                                    status: row.status
+                                                                })
+                                                            }}
+                                                            className="flex items-center gap-1.5 text-teal-accent hover:text-white mt-1 px-2 py-1 bg-teal-accent/10 hover:bg-teal-accent/20 rounded-md border border-teal-accent/20 transition-colors"
+                                                        >
+                                                            <FileText size={12} />
+                                                            <span className="text-[10px] font-bold uppercase tracking-wider">Read Full Instructions</span>
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            )
+                                        },
+                                        { header: 'Date', accessor: 'date' }
+                                    ]}
+                                />
+                            </div>
+                        )}
+
+                        {/* Standard Treatment Logs */}
+                        <div className="bg-surface-card rounded-2xl border border-white/5 overflow-hidden shadow-sm">
+                            <SearchableTable
+                                title="Your Requested Treatment Logs"
+                                data={treatments}
+                                highlightRowId={highlightedTreatmentId}
+                                searchPlaceholder="Search by antibiotic, farm, date..."
+                                columns={[
+                                    {
+                                        header: 'Farm',
+                                        render: (row) => (
+                                            <div>
+                                                <p className="text-white font-medium text-sm">{row.farm__name}</p>
+                                                <p className="text-slate-500 text-[10px]">{row.farm__farm_number}</p>
+                                            </div>
+                                        )
+                                    },
+                                    {
+                                        header: 'Target',
+                                        render: (row) => (
+                                            <div className="flex flex-col">
+                                                {row.animal__animal_tag ? (
+                                                    <>
+                                                        <span className="text-white font-bold text-xs">{row.animal__animal_tag}</span>
+                                                        <span className="text-[10px] text-slate-500 uppercase tracking-tighter text-teal-accent/70">Individual Animal</span>
+                                                    </>
+                                                ) : row.flock__flock_tag ? (
+                                                    <>
+                                                        <span className="text-white font-medium text-xs font-mono">{row.flock__flock_tag}</span>
+                                                        <span className="text-[10px] text-slate-500 uppercase tracking-tighter text-indigo-400/70">Whole Flock</span>
+                                                    </>
+                                                ) : (
+                                                    <span className="text-slate-400 text-xs italic">Whole Farm</span>
+                                                )}
+                                            </div>
+                                        )
+                                    },
+                                    {
+                                        header: 'Antibiotic & Dosage',
+                                        render: (row) => (
+                                            <div className="flex flex-col gap-1">
+                                                <span className="text-white font-medium text-sm">{row.antibiotic_name}</span>
+                                                {(row.dosage || row.method_intake) && (
+                                                    <div className="flex flex-wrap gap-1.5 mt-0.5">
+                                                        {row.dosage && <span className="bg-teal-accent/10 text-teal-accent text-[9px] px-1.5 py-0.5 rounded border border-teal-accent/20 uppercase font-medium">{row.dosage}</span>}
+                                                        {row.method_intake && <span className="bg-white/5 text-slate-400 text-[9px] px-1.5 py-0.5 rounded border border-white/10 uppercase font-medium">{row.method_intake}</span>}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )
+                                    },
+                                    {
+                                        header: 'Reason & Notes',
+                                        render: (row) => (
+                                            <div className="flex flex-col gap-2">
+                                                <span className="capitalize text-slate-300 text-xs font-medium">{(row.reason || '').replace(/_/g, ' ')} / {row.treated_for}</span>
+                                                {row.vet_notes && (
+                                                    <button
+                                                        onClick={() => setSelectedNotes({
+                                                            antibiotic: row.antibiotic_name,
+                                                            notes: row.vet_notes,
+                                                            date: row.date,
+                                                            status: row.status
+                                                        })}
+                                                        className="flex items-center gap-1.5 text-teal-accent hover:text-white mt-1 px-2 py-1 bg-teal-accent/10 hover:bg-teal-accent/20 rounded-md border border-teal-accent/20 transition-colors self-start"
+                                                    >
+                                                        <FileText size={12} />
+                                                        <span className="text-[10px] font-bold uppercase tracking-wider">View Notes</span>
+                                                    </button>
+                                                )}
+                                            </div>
+                                        )
+                                    },
+                                    { header: 'Date', accessor: 'date' },
+                                    {
+                                        header: 'Status',
+                                        render: (row) => {
+                                            const cls = {
+                                                'pending': 'bg-amber-500/10 text-amber-400 border-amber-500/20',
+                                                'approved': 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+                                                'rejected': 'bg-rose-500/10 text-rose-400 border-rose-500/20'
+                                            };
+                                            const status = row.status || 'pending';
+                                            return (
+                                                <span className={`px-3 py-1 rounded-md text-[10px] uppercase font-medium border ${cls[status] || cls.pending}`}>
+                                                    {status}
+                                                </span>
+                                            );
+                                        }
+                                    }
+                                ]}
+                                actions={
+                                    <button
+                                        onClick={() => navigate('/log-treatment')}
+                                        className="px-5 py-3 bg-[#00c096] text-[#14171a] rounded-lg font-bold text-xs uppercase tracking-wider hover:bg-[#00d4a6] transition-all flex items-center gap-2 shadow-lg shadow-[#00c096]/10"
+                                    >
+                                        <Activity size={16} strokeWidth={3} />
+                                        Log New Treatment
+                                    </button>
                                 }
-                            }
-                        ]}
-                        actions={
-                            <button
-                                onClick={() => navigate('/log-treatment')}
-                                className="px-5 py-3 bg-[#00c096] text-[#14171a] rounded-lg font-bold text-xs uppercase tracking-wider hover:bg-[#00d4a6] transition-all flex items-center gap-2 shadow-lg shadow-[#00c096]/10"
-                            >
-                                <Activity size={16} strokeWidth={3} />
-                                Log Treatment
-                            </button>
-                        }
-                    />
+                            />
+                        </div>
+                    </div>
                 );
 
             default:
@@ -462,7 +614,7 @@ const OperatorDashboard = () => {
 
             <main className="flex-1 ml-64 p-8 animate-fade-in custom-scrollbar overflow-y-auto h-screen">
                 {/* Header */}
-                <header className="flex justify-between items-center mb-8 animate-slide-up">
+                <header className="flex justify-between items-center mb-8 animate-slide-up relative z-50">
                     <div>
                         <h1 className="text-2xl font-bold text-white tracking-tight">
                             {tabLabels[activeTab] || activeTab}
@@ -474,7 +626,7 @@ const OperatorDashboard = () => {
                         </div>
                     </div>
 
-                    <div className="flex gap-3">
+                    <div className="flex gap-3 items-center">
                         <div className="flex items-center gap-2 bg-surface-card border border-white/5 rounded-xl px-4 py-2.5 text-slate-400">
                             <Search size={16} />
                             <input
@@ -483,6 +635,70 @@ const OperatorDashboard = () => {
                                 className="bg-transparent border-none focus:ring-0 text-sm placeholder:text-slate-600 w-48 outline-none"
                             />
                         </div>
+
+                        {/* Notification Bell */}
+                        <div className="relative z-[100]">
+                            <button
+                                onClick={() => setShowNotifications(!showNotifications)}
+                                className="p-2.5 bg-surface-card hover:bg-white/5 border border-white/5 text-slate-400 rounded-xl transition-colors relative"
+                            >
+                                <Bell size={18} />
+                                {unreadDirectivesCount > 0 && (
+                                    <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[9px] font-bold text-white shadow-[0_0_10px_rgba(244,63,94,0.5)] animate-pulse">
+                                        {unreadDirectivesCount}
+                                    </span>
+                                )}
+                            </button>
+
+                            {/* Notifications Dropdown */}
+                            {showNotifications && (
+                                <div className="absolute right-0 mt-2 w-80 bg-surface-card rounded-2xl border border-white/5 shadow-2xl overflow-hidden animate-fade-in origin-top-right">
+                                    <div className="p-4 border-b border-white/5 flex justify-between items-center bg-teal-accent/5">
+                                        <h4 className="font-bold text-white text-sm">Inbox ({unreadDirectivesCount})</h4>
+                                        <button onClick={() => setShowNotifications(false)} className="text-slate-500 hover:text-white transition-colors">
+                                            <XCircle size={16} />
+                                        </button>
+                                    </div>
+                                    <div className="max-h-80 overflow-y-auto custom-scrollbar divide-y divide-white/5">
+                                        {allNotifications.map((d, i) => {
+                                            const isRead = readDirectives.includes(d.id);
+                                            const isVetDirective = d.recorded_by__role === 'vet';
+                                            return (
+                                                <div key={i} className={`p-4 hover:bg-white/[0.04] transition-colors group cursor-pointer ${isRead ? 'opacity-60' : 'bg-teal-accent/5'}`} onClick={() => handleNotificationClick(d)}>
+                                                    <div className="flex justify-between items-start mb-1">
+                                                        <span className={`text-xs font-bold transition-colors ${isRead ? 'text-slate-300' : 'text-white group-hover:text-teal-accent'}`}>
+                                                            {d.farm__name}
+                                                        </span>
+                                                        <span className="text-[9px] text-slate-500 flex items-center gap-1">
+                                                            {!isRead && <div className="w-1.5 h-1.5 rounded-full bg-teal-accent" />}
+                                                            {d.date}
+                                                        </span>
+                                                    </div>
+                                                    <p className={`text-[10px] uppercase tracking-widest font-medium mb-1 ${isRead ? 'text-slate-500' : (d.status === 'rejected' ? 'text-rose-400' : 'text-teal-accent/80')}`}>
+                                                        {isVetDirective ? 'New Vet Prescription' : `Request ${d.status}:`} {d.antibiotic_name}
+                                                    </p>
+                                                    <p className="text-xs text-slate-400 line-clamp-2 italic">{d.vet_notes || 'No extra notes provided.'}</p>
+                                                </div>
+                                            );
+                                        })}
+                                        {allNotifications.length === 0 && (
+                                            <div className="p-6 text-center text-slate-500 text-sm">
+                                                <Bell className="mx-auto mb-2 opacity-20" size={24} />
+                                                No new messages
+                                            </div>
+                                        )}
+                                    </div>
+                                    {allNotifications.length > 0 && (
+                                        <div className="p-3 border-t border-white/5 bg-black/20 text-center">
+                                            <button onClick={() => { setActiveTab('treatments'); setShowNotifications(false); }} className="text-[10px] text-teal-accent font-bold uppercase tracking-widest hover:underline">
+                                                View All in Treatments
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+
                         <div className="p-2.5 bg-teal-accent text-[#14171a] rounded-xl cursor-pointer hover:opacity-90 transition-opacity teal-glow">
                             <Settings size={18} strokeWidth={2.5} />
                         </div>
@@ -518,6 +734,44 @@ const OperatorDashboard = () => {
                                 farms={farms}
                                 userEmail={user?.email}
                             />
+                        </div>
+                    </div>
+                )}
+
+                {/* Vet Notes Modal */}
+                {selectedNotes && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
+                        <div className="bg-surface-card w-full max-w-md rounded-3xl border border-white/5 shadow-2xl overflow-hidden animate-slide-up">
+                            <div className="p-6 border-b border-white/5 flex justify-between items-center bg-teal-accent/5">
+                                <div className="flex flex-col">
+                                    <h3 className="text-white font-bold text-lg flex items-center gap-2">
+                                        <FileText size={18} className="text-teal-accent" />
+                                        Veterinarian Notes
+                                    </h3>
+                                    <p className="text-[10px] text-slate-400 mt-1 uppercase tracking-widest">{selectedNotes.antibiotic} • {selectedNotes.date}</p>
+                                </div>
+                                <button
+                                    onClick={() => setSelectedNotes(null)}
+                                    className="p-1 hover:bg-white/10 rounded-full text-slate-400 hover:text-white transition-colors"
+                                >
+                                    <XCircle size={20} />
+                                </button>
+                            </div>
+                            <div className="p-6">
+                                <div className="bg-slate-900/50 rounded-xl p-4 border border-white/5">
+                                    <p className="text-slate-300 text-sm leading-relaxed whitespace-pre-wrap">
+                                        {selectedNotes.notes}
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="p-4 border-t border-white/5 bg-black/20 flex justify-end">
+                                <button
+                                    onClick={() => setSelectedNotes(null)}
+                                    className="px-4 py-2 bg-slate-800 text-white rounded-lg text-xs font-bold uppercase tracking-wider hover:bg-slate-700 transition-colors"
+                                >
+                                    Close
+                                </button>
+                            </div>
                         </div>
                     </div>
                 )}

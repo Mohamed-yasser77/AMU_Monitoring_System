@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Search, ChevronDown, Filter } from 'lucide-react';
 
 const SearchableTable = ({
@@ -7,7 +7,9 @@ const SearchableTable = ({
     columns,
     onRowClick,
     searchPlaceholder = "Search...",
-    actions
+    actions,
+    highlightRowId = null,
+    rowKey = 'id'
 }) => {
     const [searchTerm, setSearchTerm] = useState('');
 
@@ -16,6 +18,19 @@ const SearchableTable = ({
             String(val).toLowerCase().includes(searchTerm.toLowerCase())
         )
     );
+
+    const tableRef = useRef(null);
+
+    useEffect(() => {
+        if (highlightRowId && tableRef.current) {
+            // Find the row by data attribute (we'll add it below)
+            const rowEl = tableRef.current.querySelector(`tr[data-row-id="${highlightRowId}"]`);
+            if (rowEl) {
+                // Scroll the row into view, centered if possible
+                rowEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+    }, [highlightRowId, filteredData]);
 
     return (
         <div className="bg-[#1c2025] rounded-xl border border-white/5 overflow-hidden animate-enter transition-all shadow-2xl">
@@ -43,7 +58,7 @@ const SearchableTable = ({
                 </div>
             </div>
 
-            <div className="overflow-x-auto custom-scrollbar px-2 pb-2">
+            <div className="overflow-x-auto custom-scrollbar px-2 pb-2" ref={tableRef}>
                 <table className="w-full text-left border-collapse">
                     <thead>
                         <tr className="border-b border-white/5 bg-white/[0.01]">
@@ -59,8 +74,9 @@ const SearchableTable = ({
                             filteredData.map((row, rowIdx) => (
                                 <tr
                                     key={rowIdx}
+                                    data-row-id={row[rowKey]}
                                     onClick={() => onRowClick && onRowClick(row)}
-                                    className={`group transition-all duration-300 ${onRowClick ? 'cursor-pointer hover:bg-white/[0.025]' : ''} animate-slide-up`}
+                                    className={`group transition-all duration-300 ${onRowClick ? 'cursor-pointer hover:bg-white/[0.025]' : ''} animate-slide-up ${highlightRowId && row[rowKey] === highlightRowId ? 'ring-2 ring-teal-accent bg-teal-accent/10 border-transparent shadow-[0_0_15px_rgba(45,212,191,0.2)]' : ''}`}
                                     style={{ animationDelay: `${rowIdx * 30}ms` }}
                                 >
                                     {columns.map((col, colIdx) => (

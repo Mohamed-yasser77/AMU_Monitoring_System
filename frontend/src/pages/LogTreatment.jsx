@@ -189,8 +189,8 @@ const LogTreatment = () => {
   );
 
   return (
-    <div className={`min-h-screen ${darkMode ? 'bg-[#01050a]' : 'bg-slate-50'} py-16 px-6 flex justify-center items-start overflow-y-auto custom-scrollbar transition-colors duration-500`}>
-      <div className="max-w-5xl w-full grid grid-cols-1 lg:grid-cols-3 gap-12 animate-slide-up">
+    <div className={`h-screen overflow-y-auto custom-scrollbar ${darkMode ? 'bg-[#01050a]' : 'bg-slate-50'} py-16 px-6 transition-colors duration-500 overflow-x-hidden`}>
+      <div className="max-w-5xl mx-auto w-full grid grid-cols-1 lg:grid-cols-3 gap-12 animate-slide-up pb-24">
 
         {/* Info Panel */}
         <div className="space-y-8">

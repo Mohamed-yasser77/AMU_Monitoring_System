@@ -19,7 +19,11 @@ class FarmListCreateView(View):
 
         try:
             user = User.objects.get(email_address=email)
-            farms = Farm.objects.filter(user=user).values()
+            if user.role == 'vet':
+                # Vets can see all farms to provide prescriptions
+                farms = Farm.objects.all().values()
+            else:
+                farms = Farm.objects.filter(user=user).values()
             return JsonResponse(list(farms), safe=False, status=200)
         except User.DoesNotExist:
             return JsonResponse({'error': 'User not found'}, status=404)
