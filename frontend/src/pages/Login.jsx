@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Mail, Lock, Shield, ChevronRight, XCircle } from 'lucide-react'
+import { Mail, Lock, Shield, ChevronRight, XCircle, ArrowLeft } from 'lucide-react'
 
 function Login() {
   const [formData, setFormData] = useState({
@@ -83,14 +83,25 @@ function Login() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0a192f] flex items-center justify-center px-4 py-12 relative overflow-hidden">
+    <div className="min-h-screen bg-[#14171a] flex items-center justify-center px-4 py-12 relative overflow-hidden">
       {/* Background Orbs */}
       <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-teal-accent/10 rounded-full blur-[120px] pointer-events-none"></div>
-      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-900/20 rounded-full blur-[120px] pointer-events-none"></div>
+      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-slate-800/10 rounded-full blur-[120px] pointer-events-none"></div>
+
+      {/* Back to Home Link */}
+      <Link
+        to="/"
+        className="absolute top-8 left-8 flex items-center gap-2 text-slate-500 hover:text-white transition-all group z-20"
+      >
+        <div className="p-2 rounded-none bg-white/5 group-hover:bg-white/10 border border-white/5 transition-all">
+          <ArrowLeft size={16} />
+        </div>
+        <span className="text-xs font-bold uppercase tracking-widest hidden sm:inline-block">Back to Home</span>
+      </Link>
 
       <div className="w-full max-w-md z-10 animate-enter">
         <div className="text-center mb-10">
-          <div className="inline-flex items-center justify-center p-3 rounded-2xl bg-teal-accent/10 mb-4 animate-slide-up">
+          <div className="inline-flex items-center justify-center p-3 rounded-none bg-teal-accent/10 mb-4 animate-slide-up">
             <Shield className="text-teal-accent" size={32} />
           </div>
           <h1 className="text-3xl font-bold text-white tracking-tight animate-slide-up" style={{ animationDelay: '0.1s' }}>
@@ -102,7 +113,7 @@ function Login() {
         </div>
 
         {!userName && (
-          <div className="glass-effect rounded-2xl p-8 teal-glow animate-slide-up" style={{ animationDelay: '0.3s' }}>
+          <div className="glass-effect rounded-none p-8 teal-glow animate-slide-up" style={{ animationDelay: '0.3s' }}>
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
                 <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider ml-1">Email Address</label>
@@ -113,7 +124,7 @@ function Login() {
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
-                    className={`w-full bg-surface-bg/50 border ${errors.email ? 'border-red-500/50' : 'border-white/5 focus:border-teal-accent/50'} rounded-xl py-3 pl-12 pr-4 text-white placeholder:text-slate-600 outline-none transition-all focus:ring-4 focus:ring-teal-accent/5`}
+                    className={`w-full bg-surface-bg/50 border ${errors.email ? 'border-red-500/50' : 'border-white/5 focus:border-teal-accent/50'} rounded-none py-3 pl-12 pr-4 text-white placeholder:text-slate-600 outline-none transition-all focus:ring-4 focus:ring-teal-accent/5`}
                     placeholder="name@company.com"
                   />
                 </div>
@@ -134,7 +145,7 @@ function Login() {
                     name="password"
                     value={formData.password}
                     onChange={handleChange}
-                    className={`w-full bg-surface-bg/50 border ${errors.password ? 'border-red-500/50' : 'border-white/5 focus:border-teal-accent/50'} rounded-xl py-3 pl-12 pr-4 text-white placeholder:text-slate-600 outline-none transition-all focus:ring-4 focus:ring-teal-accent/5`}
+                    className={`w-full bg-surface-bg/50 border ${errors.password ? 'border-red-500/50' : 'border-white/5 focus:border-teal-accent/50'} rounded-none py-3 pl-12 pr-4 text-white placeholder:text-slate-600 outline-none transition-all focus:ring-4 focus:ring-teal-accent/5`}
                     placeholder="••••••••"
                   />
                 </div>
@@ -142,7 +153,7 @@ function Login() {
               </div>
 
               {errors.general && (
-                <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-3 flex items-center gap-3 text-red-400 text-sm">
+                <div className="bg-red-500/10 border border-red-500/20 rounded-none p-3 flex items-center gap-3 text-red-400 text-sm">
                   <XCircle size={18} />
                   {errors.general}
                 </div>
@@ -151,7 +162,7 @@ function Login() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full bg-[#00c096] hover:bg-[#00d1a4] text-white font-bold py-4 rounded-xl shadow-lg shadow-teal-accent/20 transition-all active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center group"
+                className="w-full bg-[#00c096] hover:bg-[#00d1a4] text-white font-bold py-4 rounded-none shadow-lg shadow-teal-accent/20 transition-all active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center group"
               >
                 {isSubmitting ? (
                   <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { User, Mail, Lock, UserCheck, Shield, ChevronRight, XCircle, CheckCircle } from 'lucide-react'
+import { User, Mail, Lock, UserCheck, Shield, ChevronRight, XCircle, CheckCircle, ArrowLeft } from 'lucide-react'
 
 function Register() {
   const [formData, setFormData] = useState({
@@ -92,14 +92,25 @@ function Register() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0a192f] flex items-center justify-center px-4 py-12 relative overflow-hidden">
+    <div className="min-h-screen bg-[#14171a] flex items-center justify-center px-4 py-12 relative overflow-hidden">
       {/* Background Orbs */}
       <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-teal-accent/10 rounded-full blur-[120px] pointer-events-none"></div>
-      <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-900/20 rounded-full blur-[120px] pointer-events-none"></div>
+      <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-slate-800/10 rounded-full blur-[120px] pointer-events-none"></div>
+
+      {/* Back to Home Link */}
+      <Link
+        to="/"
+        className="absolute top-8 left-8 flex items-center gap-2 text-slate-500 hover:text-white transition-all group z-20"
+      >
+        <div className="p-2 rounded-none bg-white/5 group-hover:bg-white/10 border border-white/5 transition-all">
+          <ArrowLeft size={16} />
+        </div>
+        <span className="text-xs font-bold uppercase tracking-widest hidden sm:inline-block">Back to Home</span>
+      </Link>
 
       <div className="w-full max-w-lg z-10 animate-enter">
         <div className="text-center mb-10">
-          <div className="inline-flex items-center justify-center p-3 rounded-2xl bg-teal-accent/10 mb-4 animate-slide-up">
+          <div className="inline-flex items-center justify-center p-3 rounded-none bg-teal-accent/10 mb-4 animate-slide-up">
             <UserCheck className="text-teal-accent" size={32} />
           </div>
           <h1 className="text-3xl font-bold text-white tracking-tight animate-slide-up" style={{ animationDelay: '0.1s' }}>
@@ -111,15 +122,15 @@ function Register() {
         </div>
 
         {success ? (
-          <div className="glass-effect rounded-2xl p-12 teal-glow flex flex-col items-center justify-center text-center animate-scale-up">
-            <div className="w-20 h-20 bg-teal-accent/20 rounded-full flex items-center justify-center mb-6">
+          <div className="glass-effect rounded-none p-12 teal-glow flex flex-col items-center justify-center text-center animate-scale-up">
+            <div className="w-20 h-20 bg-teal-accent/20 rounded-none flex items-center justify-center mb-6">
               <CheckCircle className="text-teal-accent" size={40} />
             </div>
             <h3 className="text-2xl font-bold text-white mb-2">{success}</h3>
             <p className="text-slate-400">Please wait while we redirect you to the login page.</p>
           </div>
         ) : (
-          <div className="glass-effect rounded-2xl p-8 teal-glow animate-slide-up" style={{ animationDelay: '0.3s' }}>
+          <div className="glass-effect rounded-none p-8 teal-glow animate-slide-up" style={{ animationDelay: '0.3s' }}>
             <form onSubmit={handleSubmit} className="space-y-5">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
@@ -130,7 +141,7 @@ function Register() {
                       name="firstName"
                       value={formData.firstName}
                       onChange={handleChange}
-                      className={`w-full bg-surface-bg/40 border ${errors.firstName ? 'border-red-500/50' : 'border-white/5 focus:border-teal-accent/50'} rounded-xl py-2.5 pl-10 pr-4 text-white text-sm outline-none transition-all`}
+                      className={`w-full bg-surface-bg/40 border ${errors.firstName ? 'border-red-500/50' : 'border-white/5 focus:border-teal-accent/50'} rounded-none py-2.5 pl-10 pr-4 text-white text-sm outline-none transition-all`}
                       placeholder="John"
                     />
                   </div>
@@ -141,7 +152,7 @@ function Register() {
                     name="lastName"
                     value={formData.lastName}
                     onChange={handleChange}
-                    className={`w-full bg-surface-bg/40 border ${errors.lastName ? 'border-red-500/50' : 'border-white/5 focus:border-teal-accent/50'} rounded-xl py-2.5 px-4 text-white text-sm outline-none transition-all`}
+                    className={`w-full bg-surface-bg/40 border ${errors.lastName ? 'border-red-500/50' : 'border-white/5 focus:border-teal-accent/50'} rounded-none py-2.5 px-4 text-white text-sm outline-none transition-all`}
                     placeholder="Doe"
                   />
                 </div>
@@ -153,7 +164,7 @@ function Register() {
                   name="role"
                   value={formData.role}
                   onChange={handleChange}
-                  className="w-full bg-surface-bg/40 border border-white/5 focus:border-teal-accent/50 rounded-xl py-2.5 px-4 text-white text-sm outline-none transition-all appearance-none cursor-pointer"
+                  className="w-full bg-surface-bg/40 border border-white/5 focus:border-teal-accent/50 rounded-none py-2.5 px-4 text-white text-sm outline-none transition-all appearance-none cursor-pointer"
                 >
                   <option value="data_operator">Data Operator</option>
                   <option value="vet">Veterinarian</option>
@@ -170,7 +181,7 @@ function Register() {
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
-                    className={`w-full bg-surface-bg/40 border ${errors.email ? 'border-red-500/50' : 'border-white/5 focus:border-teal-accent/50'} rounded-xl py-2.5 pl-10 pr-4 text-white text-sm outline-none transition-all`}
+                    className={`w-full bg-surface-bg/40 border ${errors.email ? 'border-red-500/50' : 'border-white/5 focus:border-teal-accent/50'} rounded-none py-2.5 pl-10 pr-4 text-white text-sm outline-none transition-all`}
                     placeholder="john@example.com"
                   />
                 </div>
@@ -186,7 +197,7 @@ function Register() {
                       name="password"
                       value={formData.password}
                       onChange={handleChange}
-                      className={`w-full bg-surface-bg/40 border ${errors.password ? 'border-red-500/50' : 'border-white/5 focus:border-teal-accent/50'} rounded-xl py-2.5 pl-10 pr-4 text-white text-sm outline-none transition-all`}
+                      className={`w-full bg-surface-bg/40 border ${errors.password ? 'border-red-500/50' : 'border-white/5 focus:border-teal-accent/50'} rounded-none py-2.5 pl-10 pr-4 text-white text-sm outline-none transition-all`}
                       placeholder="••••••••"
                     />
                   </div>
@@ -198,14 +209,14 @@ function Register() {
                     name="confirmPassword"
                     value={formData.confirmPassword}
                     onChange={handleChange}
-                    className={`w-full bg-surface-bg/40 border ${errors.confirmPassword ? 'border-red-500/50' : 'border-white/5 focus:border-teal-accent/50'} rounded-xl py-2.5 px-4 text-white text-sm outline-none transition-all`}
+                    className={`w-full bg-surface-bg/40 border ${errors.confirmPassword ? 'border-red-500/50' : 'border-white/5 focus:border-teal-accent/50'} rounded-none py-2.5 px-4 text-white text-sm outline-none transition-all`}
                     placeholder="••••••••"
                   />
                 </div>
               </div>
 
               {errors.general && (
-                <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-3 flex items-center gap-3 text-red-400 text-xs">
+                <div className="bg-red-500/10 border border-red-500/20 rounded-none p-3 flex items-center gap-3 text-red-400 text-xs">
                   <XCircle size={16} />
                   {errors.general}
                 </div>
@@ -214,7 +225,7 @@ function Register() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full bg-[#00c096] hover:bg-[#00d1a4] text-white font-bold py-3.5 rounded-xl shadow-lg shadow-teal-accent/20 transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center group mt-2"
+                className="w-full bg-[#00c096] hover:bg-[#00d1a4] text-white font-bold py-3.5 rounded-none shadow-lg shadow-teal-accent/20 transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center group mt-2"
               >
                 {isSubmitting ? (
                   <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>

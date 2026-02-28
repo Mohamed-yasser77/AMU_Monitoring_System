@@ -19,7 +19,7 @@
     /* Prevent body scroll to let container handle it */
     background-color: #14171a;
     color: #94a3b8;
-    font-family: 'Roboto', 'Outfit', sans-serif;
+    font-family: 'Manrope', 'Roboto', 'Outfit', sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
@@ -207,5 +207,33 @@
 
   .hover-green-fade:hover::before {
     opacity: 0;
+  }
+
+  .animate-line-sweep {
+    animation: line-sweep 1s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+
+  @keyframes line-sweep {
+    0% {
+      width: 0%;
+      left: 0;
+      opacity: 0;
+    }
+
+    10% {
+      opacity: 1;
+    }
+
+    90% {
+      opacity: 1;
+      width: 100%;
+      left: 0;
+    }
+
+    100% {
+      width: 100%;
+      left: 0;
+      opacity: 0;
+    }
   }
 }

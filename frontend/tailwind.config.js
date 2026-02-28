@@ -39,6 +39,9 @@ export default {
           input: '#1a1d21',
         }
       },
+      fontFamily: {
+        sans: ['Manrope', 'sans-serif'],
+      },
     },
   },
   plugins: [],
