@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { User, Mail, Lock, UserCheck, Shield, ChevronRight, XCircle, CheckCircle } from 'lucide-react'
 
 function Register() {
   const [formData, setFormData] = useState({
@@ -11,6 +12,8 @@ function Register() {
     role: 'data_operator',
   })
   const [errors, setErrors] = useState({})
+  const [success, setSuccess] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const navigate = useNavigate()
 
   const handleChange = (e) => {
@@ -19,7 +22,6 @@ function Register() {
       ...prev,
       [name]: value
     }))
-    // Clear error when user starts typing
     if (errors[name]) {
       setErrors(prev => ({
         ...prev,
@@ -30,43 +32,29 @@ function Register() {
 
   const validate = () => {
     const newErrors = {}
-    
-    if (!formData.firstName.trim()) {
-      newErrors.firstName = 'First name is required'
-    }
-    
-    if (!formData.lastName.trim()) {
-      newErrors.lastName = 'Last name is required'
-    }
-    
+    if (!formData.firstName.trim()) newErrors.firstName = 'First name is required'
+    if (!formData.lastName.trim()) newErrors.lastName = 'Last name is required'
     if (!formData.email) {
       newErrors.email = 'Email is required'
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = 'Email is invalid'
     }
-    
     if (!formData.password) {
       newErrors.password = 'Password is required'
     } else if (formData.password.length < 8) {
-      newErrors.password = 'Password must be at least 8 characters'
+      newErrors.password = 'At least 8 characters'
     }
-    
-    if (!formData.confirmPassword) {
-      newErrors.confirmPassword = 'Please confirm your password'
-    } else if (formData.password !== formData.confirmPassword) {
+    if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = 'Passwords do not match'
     }
-    
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
 
-  const [success, setSuccess] = useState('')
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!validate()) {
-      return
-    }
+    if (!validate()) return
+    setIsSubmitting(true)
     try {
       const response = await fetch('http://localhost:8000/api/register/', {
         method: 'POST',
@@ -83,13 +71,14 @@ function Register() {
       })
       const data = await response.json()
       if (response.ok) {
-        setSuccess('Registration successful! You can now log in.')
+        setSuccess('Account created successfully!')
         setFormData({
           firstName: '',
           lastName: '',
           email: '',
           password: '',
           confirmPassword: '',
+          role: 'data_operator'
         })
         setTimeout(() => navigate('/login'), 2000)
       } else {
@@ -97,198 +86,157 @@ function Register() {
       }
     } catch (error) {
       setErrors({ general: 'Network error' })
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
   return (
-    <div className="flex min-h-full flex-col justify-center px-6 py-12 lg:px-8 bg-white">
-      <div className="sm:mx-auto sm:w-full sm:max-w-sm">
-        <div className="mx-auto h-10 w-auto flex items-center justify-center">
-          <span className="text-3xl font-bold text-gray-900">AMU</span>
+    <div className="min-h-screen bg-[#0a192f] flex items-center justify-center px-4 py-12 relative overflow-hidden">
+      {/* Background Orbs */}
+      <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-teal-accent/10 rounded-full blur-[120px] pointer-events-none"></div>
+      <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-900/20 rounded-full blur-[120px] pointer-events-none"></div>
+
+      <div className="w-full max-w-lg z-10 animate-enter">
+        <div className="text-center mb-10">
+          <div className="inline-flex items-center justify-center p-3 rounded-2xl bg-teal-accent/10 mb-4 animate-slide-up">
+            <UserCheck className="text-teal-accent" size={32} />
+          </div>
+          <h1 className="text-3xl font-bold text-white tracking-tight animate-slide-up" style={{ animationDelay: '0.1s' }}>
+            {success ? 'Welcome Aboard!' : 'Join AMU Monitoring'}
+          </h1>
+          <p className="text-slate-400 mt-2 animate-slide-up" style={{ animationDelay: '0.2s' }}>
+            {success ? 'Redirecting to login...' : 'Create your account to start managing farm data'}
+          </p>
         </div>
-        <h2 className="mt-10 text-center text-2xl/9 font-bold tracking-tight text-gray-900">
-          Create your account
-        </h2>
-      </div>
 
-      <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
-        {success && (
-          <p className="mb-4 text-green-600 text-center font-semibold">{success}</p>
-        )}
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label htmlFor="firstName" className="block text-sm/6 font-medium text-gray-900">
-                First name
-              </label>
-              <div className="mt-2">
-                <input
-                  id="firstName"
-                  name="firstName"
-                  type="text"
-                  autoComplete="given-name"
-                  required
-                  value={formData.firstName}
-                  onChange={handleChange}
-                  className={`block w-full rounded-md px-3 py-1.5 text-base text-gray-900 shadow-sm ring-1 ring-inset ${
-                    errors.firstName 
-                      ? 'ring-red-300 focus:ring-red-500' 
-                      : 'ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-600'
-                  } outline-1 -outline-offset-1 sm:text-sm/6`}
-                  placeholder="First name"
-                />
-                {errors.firstName && (
-                  <p className="mt-2 text-sm text-red-600">{errors.firstName}</p>
-                )}
-              </div>
+        {success ? (
+          <div className="glass-effect rounded-2xl p-12 teal-glow flex flex-col items-center justify-center text-center animate-scale-up">
+            <div className="w-20 h-20 bg-teal-accent/20 rounded-full flex items-center justify-center mb-6">
+              <CheckCircle className="text-teal-accent" size={40} />
             </div>
-
-            <div>
-              <label htmlFor="lastName" className="block text-sm/6 font-medium text-gray-900">
-                Last name
-              </label>
-              <div className="mt-2">
-                <input
-                  id="lastName"
-                  name="lastName"
-                  type="text"
-                  autoComplete="family-name"
-                  required
-                  value={formData.lastName}
-                  onChange={handleChange}
-                  className={`block w-full rounded-md px-3 py-1.5 text-base text-gray-900 shadow-sm ring-1 ring-inset ${
-                    errors.lastName 
-                      ? 'ring-red-300 focus:ring-red-500' 
-                      : 'ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-600'
-                  } outline-1 -outline-offset-1 sm:text-sm/6`}
-                  placeholder="Last name"
-                />
-                {errors.lastName && (
-                  <p className="mt-2 text-sm text-red-600">{errors.lastName}</p>
-                )}
-              </div>
-            </div>
+            <h3 className="text-2xl font-bold text-white mb-2">{success}</h3>
+            <p className="text-slate-400">Please wait while we redirect you to the login page.</p>
           </div>
+        ) : (
+          <div className="glass-effect rounded-2xl p-8 teal-glow animate-slide-up" style={{ animationDelay: '0.3s' }}>
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">First Name</label>
+                  <div className="relative group">
+                    <User className={`absolute left-3.5 top-1/2 -translate-y-1/2 transition-colors ${errors.firstName ? 'text-red-400' : 'text-slate-600 group-focus-within:text-teal-accent'}`} size={16} />
+                    <input
+                      name="firstName"
+                      value={formData.firstName}
+                      onChange={handleChange}
+                      className={`w-full bg-surface-bg/40 border ${errors.firstName ? 'border-red-500/50' : 'border-white/5 focus:border-teal-accent/50'} rounded-xl py-2.5 pl-10 pr-4 text-white text-sm outline-none transition-all`}
+                      placeholder="John"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Last Name</label>
+                  <input
+                    name="lastName"
+                    value={formData.lastName}
+                    onChange={handleChange}
+                    className={`w-full bg-surface-bg/40 border ${errors.lastName ? 'border-red-500/50' : 'border-white/5 focus:border-teal-accent/50'} rounded-xl py-2.5 px-4 text-white text-sm outline-none transition-all`}
+                    placeholder="Doe"
+                  />
+                </div>
+              </div>
 
-          <div>
-            <label htmlFor="role" className="block text-sm/6 font-medium text-gray-900">
-              Role
-            </label>
-            <div className="mt-2">
-              <select
-                id="role"
-                name="role"
-                value={formData.role}
-                onChange={handleChange}
-                className="block w-full rounded-md px-3 py-1.5 text-base text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm/6"
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Account Role</label>
+                <select
+                  name="role"
+                  value={formData.role}
+                  onChange={handleChange}
+                  className="w-full bg-surface-bg/40 border border-white/5 focus:border-teal-accent/50 rounded-xl py-2.5 px-4 text-white text-sm outline-none transition-all appearance-none cursor-pointer"
+                >
+                  <option value="data_operator">Data Operator</option>
+                  <option value="vet">Veterinarian</option>
+                  <option value="regulator">Regulator</option>
+                </select>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Email Address</label>
+                <div className="relative group">
+                  <Mail className={`absolute left-3.5 top-1/2 -translate-y-1/2 transition-colors ${errors.email ? 'text-red-400' : 'text-slate-600 group-focus-within:text-teal-accent'}`} size={16} />
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    className={`w-full bg-surface-bg/40 border ${errors.email ? 'border-red-500/50' : 'border-white/5 focus:border-teal-accent/50'} rounded-xl py-2.5 pl-10 pr-4 text-white text-sm outline-none transition-all`}
+                    placeholder="john@example.com"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Password</label>
+                  <div className="relative group">
+                    <Lock className={`absolute left-3.5 top-1/2 -translate-y-1/2 transition-colors ${errors.password ? 'text-red-400' : 'text-slate-600 group-focus-within:text-teal-accent'}`} size={16} />
+                    <input
+                      type="password"
+                      name="password"
+                      value={formData.password}
+                      onChange={handleChange}
+                      className={`w-full bg-surface-bg/40 border ${errors.password ? 'border-red-500/50' : 'border-white/5 focus:border-teal-accent/50'} rounded-xl py-2.5 pl-10 pr-4 text-white text-sm outline-none transition-all`}
+                      placeholder="••••••••"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Confirm</label>
+                  <input
+                    type="password"
+                    name="confirmPassword"
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
+                    className={`w-full bg-surface-bg/40 border ${errors.confirmPassword ? 'border-red-500/50' : 'border-white/5 focus:border-teal-accent/50'} rounded-xl py-2.5 px-4 text-white text-sm outline-none transition-all`}
+                    placeholder="••••••••"
+                  />
+                </div>
+              </div>
+
+              {errors.general && (
+                <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-3 flex items-center gap-3 text-red-400 text-xs">
+                  <XCircle size={16} />
+                  {errors.general}
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full bg-[#00c096] hover:bg-[#00d1a4] text-white font-bold py-3.5 rounded-xl shadow-lg shadow-teal-accent/20 transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center group mt-2"
               >
-                <option value="data_operator">Data operator</option>
-                <option value="vet">Vet</option>
-                <option value="regulator">Regulator</option>
-              </select>
+                {isSubmitting ? (
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                ) : (
+                  <>
+                    Create Account
+                    <ChevronRight size={18} className="ml-2 group-hover:translate-x-1 transition-transform" />
+                  </>
+                )}
+              </button>
+            </form>
+
+            <div className="mt-8 pt-6 border-t border-white/5 text-center">
+              <p className="text-slate-400 text-sm">
+                Already have an account?{' '}
+                <Link to="/login" className="text-teal-accent font-bold hover:text-white transition-colors">
+                  Sign In
+                </Link>
+              </p>
             </div>
           </div>
-
-          <div>
-            <label htmlFor="email" className="block text-sm/6 font-medium text-gray-900">
-              Email address
-            </label>
-            <div className="mt-2">
-              <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                value={formData.email}
-                onChange={handleChange}
-                className={`block w-full rounded-md px-3 py-1.5 text-base text-gray-900 shadow-sm ring-1 ring-inset ${
-                  errors.email 
-                    ? 'ring-red-300 focus:ring-red-500' 
-                    : 'ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-600'
-                } outline-1 -outline-offset-1 sm:text-sm/6`}
-                placeholder="Enter your email"
-              />
-              {errors.email && (
-                <p className="mt-2 text-sm text-red-600">{errors.email}</p>
-              )}
-            </div>
-          </div>
-
-          <div>
-            <label htmlFor="password" className="block text-sm/6 font-medium text-gray-900">
-              Password
-            </label>
-            <div className="mt-2">
-              <input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="new-password"
-                required
-                value={formData.password}
-                onChange={handleChange}
-                className={`block w-full rounded-md px-3 py-1.5 text-base text-gray-900 shadow-sm ring-1 ring-inset ${
-                  errors.password 
-                    ? 'ring-red-300 focus:ring-red-500' 
-                    : 'ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-600'
-                } outline-1 -outline-offset-1 sm:text-sm/6`}
-                placeholder="Create a password"
-              />
-              {errors.password && (
-                <p className="mt-2 text-sm text-red-600">{errors.password}</p>
-              )}
-            </div>
-          </div>
-
-          <div>
-            <label htmlFor="confirmPassword" className="block text-sm/6 font-medium text-gray-900">
-              Confirm password
-            </label>
-            <div className="mt-2">
-              <input
-                id="confirmPassword"
-                name="confirmPassword"
-                type="password"
-                autoComplete="new-password"
-                required
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                className={`block w-full rounded-md px-3 py-1.5 text-base text-gray-900 shadow-sm ring-1 ring-inset ${
-                  errors.confirmPassword 
-                    ? 'ring-red-300 focus:ring-red-500' 
-                    : 'ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-600'
-                } outline-1 -outline-offset-1 sm:text-sm/6`}
-                placeholder="Confirm your password"
-              />
-              {errors.confirmPassword && (
-                <p className="mt-2 text-sm text-red-600">{errors.confirmPassword}</p>
-              )}
-            </div>
-          </div>
-
-          <div>
-            <button
-              type="submit"
-              className="flex w-full justify-center rounded-md bg-primary-600 px-3 py-1.5 text-sm/6 font-semibold text-white shadow-sm hover:bg-primary-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600 transition-colors"
-            >
-              Create account
-            </button>
-            {errors.general && (
-              <p className="mt-2 text-sm text-red-600 text-center">{errors.general}</p>
-            )}
-          </div>
-        </form>
-
-        <p className="mt-10 text-center text-sm/6 text-gray-500">
-          Already have an account?{' '}
-          <Link
-            to="/login"
-            className="font-semibold text-primary-600 hover:text-primary-500"
-          >
-            Sign in
-          </Link>
-        </p>
+        )}
       </div>
     </div>
   )

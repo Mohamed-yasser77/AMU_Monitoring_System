@@ -201,6 +201,7 @@ const FlockForm = ({ onCancel, onSuccess, farms, userEmail }) => {
                             onChange={handleChange}
                             className={inputClass}
                         />
+                        <p className="text-[9px] text-slate-600 mt-2 uppercase tracking-tighter italic">Select current age; will update automatically weekly</p>
                     </div>
 
                     <div className="col-span-2 border-t border-white/5 pt-5 mt-2">

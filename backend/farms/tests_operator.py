@@ -134,6 +134,30 @@ class BulkFlockEntryTest(TestCase):
             content_type='application/json',
         )
         self.assertEqual(response.status_code, 404)
+        
+    def test_flock_age_updates_dynamically(self):
+        """Flock age should be calculated correctly based on date_of_birth."""
+        from datetime import date, timedelta
+        
+        # Create a flock with age 4 weeks
+        response = self.client.post(
+            reverse('flock-bulk-create'),
+            data=self._bulk_payload(count=10, age_in_weeks=4),
+            content_type='application/json',
+        )
+        self.assertEqual(response.status_code, 201)
+        flock_id = response.json()['flock_id']
+        
+        # Verify initial age
+        flock = Flock.objects.get(id=flock_id)
+        self.assertEqual(flock.age_in_weeks, 4)
+        
+        # Manually move date_of_birth back by 2 weeks (simulating 2 weeks passing)
+        flock.date_of_birth = flock.date_of_birth - timedelta(weeks=2)
+        flock.save()
+        
+        # Verify age increased to 6
+        self.assertEqual(flock.age_in_weeks, 6)
 
 
 class FlockAndAnimalTreatmentTest(TestCase):

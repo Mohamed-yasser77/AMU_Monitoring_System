@@ -231,7 +231,7 @@ class OwnerDetailView(View):
                     'flock_tag': flock.flock_tag,
                     'species_type': flock.species_type,
                     'size': flock.size,
-                    'age_in_weeks': flock.age_in_weeks,
+                    'age_in_weeks': flock.age_in_weeks, # Uses property now
                     'farm_id': flock.farm_id,
                     'animals': animals_data,
                     'is_under_withdrawal': status['is_under_withdrawal'],
@@ -366,7 +366,7 @@ class FlockListCreateView(View):
                 flock_tag=data.get('flock_tag'),
                 species_type=data.get('species_type'),
                 size=data.get('size'),
-                age_in_weeks=data.get('age_in_weeks'),
+                initial_age_in_weeks=data.get('age_in_weeks'), # Map to initial
             )
             return JsonResponse({'id': flock.id}, status=201)
         except User.DoesNotExist:
@@ -608,6 +608,15 @@ class BulkFlockCreateView(View):
             flock_tag = f"{farm.farm_number}-{flock_code}"
 
             with transaction.atomic():
+                # Calculate date_of_birth from input age
+                dob = date.today()
+                if age_in_weeks:
+                    try:
+                        weeks = int(age_in_weeks)
+                        dob = date.today() - timedelta(weeks=weeks)
+                    except (ValueError, TypeError):
+                        pass
+
                 # Create the flock
                 flock = Flock.objects.create(
                     owner=owner,
@@ -616,7 +625,8 @@ class BulkFlockCreateView(View):
                     flock_tag=flock_tag,
                     species_type=species_type,
                     size=count,
-                    age_in_weeks=age_in_weeks,
+                    initial_age_in_weeks=age_in_weeks,
+                    date_of_birth=dob,
                     avg_weight=float(avg_weight),
                     avg_feed_consumption=float(avg_feed_consumption),
                     avg_water_consumption=float(avg_water_consumption),

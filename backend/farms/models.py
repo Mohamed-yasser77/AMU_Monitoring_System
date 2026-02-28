@@ -68,7 +68,8 @@ class Flock(models.Model):
     flock_tag = models.CharField(max_length=100, blank=True, null=True, help_text="Composite tag: farm_number-flock_code (auto-generated)")
     species_type = models.CharField(max_length=20, choices=SPECIES_CHOICES)
     size = models.IntegerField(help_text="Number of animals in this flock")
-    age_in_weeks = models.IntegerField(blank=True, null=True)
+    initial_age_in_weeks = models.IntegerField(blank=True, null=True, help_text="Age at the time of registration")
+    date_of_birth = models.DateField(blank=True, null=True, help_text="Calculated birth date for rolling age updates")
     avg_weight = models.FloatField(help_text="Average weight in kg", default=0.0)
     avg_feed_consumption = models.FloatField(help_text="Average feed consumption in kg/day", default=0.0)
     avg_water_consumption = models.FloatField(help_text="Average water consumption in litres/day", default=0.0)
@@ -78,6 +79,20 @@ class Flock(models.Model):
 
     def __str__(self):
         return f"{self.flock_tag} ({self.size} animals)"
+
+    @property
+    def age_in_weeks(self):
+        """
+        Calculates the current age in weeks dynamically based on date_of_birth.
+        Falls back to initial_age_in_weeks if date_of_birth is not set.
+        """
+        if not self.date_of_birth:
+            return self.initial_age_in_weeks or 0
+            
+        from datetime import date
+        today = date.today()
+        delta = today - self.date_of_birth
+        return max(0, delta.days // 7)
 
     @property
     def withdrawal_status(self):
