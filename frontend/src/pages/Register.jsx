@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { User, Mail, Lock, UserCheck, Shield, ChevronRight, XCircle, CheckCircle, ArrowLeft } from 'lucide-react'
+import api from '../services/api'
 
 function Register() {
   const [formData, setFormData] = useState({
@@ -56,36 +57,26 @@ function Register() {
     if (!validate()) return
     setIsSubmitting(true)
     try {
-      const response = await fetch('http://localhost:8000/api/register/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          first_name: formData.firstName,
-          last_name: formData.lastName,
-          email_address: formData.email,
-          password: formData.password,
-          role: formData.role,
-        }),
+      await api.post('/register/', {
+        first_name: formData.firstName,
+        last_name: formData.lastName,
+        email_address: formData.email,
+        password: formData.password,
+        role: formData.role,
       })
-      const data = await response.json()
-      if (response.ok) {
-        setSuccess('Account created successfully!')
-        setFormData({
-          firstName: '',
-          lastName: '',
-          email: '',
-          password: '',
-          confirmPassword: '',
-          role: 'data_operator'
-        })
-        setTimeout(() => navigate('/login'), 2000)
-      } else {
-        setErrors({ general: data.error || 'Registration failed' })
-      }
+
+      setSuccess('Account created successfully!')
+      setFormData({
+        firstName: '',
+        lastName: '',
+        email: '',
+        password: '',
+        confirmPassword: '',
+        role: 'data_operator'
+      })
+      setTimeout(() => navigate('/login'), 2000)
     } catch (error) {
-      setErrors({ general: 'Network error' })
+      setErrors({ general: error.message || 'Registration failed' })
     } finally {
       setIsSubmitting(false)
     }

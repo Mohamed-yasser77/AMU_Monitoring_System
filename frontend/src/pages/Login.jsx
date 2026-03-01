@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Mail, Lock, Shield, ChevronRight, XCircle, ArrowLeft } from 'lucide-react'
+import api from '../services/api'
 
 function Login() {
   const [formData, setFormData] = useState({
@@ -45,38 +46,28 @@ function Login() {
     if (!validate()) return
     setIsSubmitting(true)
     try {
-      const response = await fetch('http://localhost:8000/api/login/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email_address: formData.email,
-          password: formData.password,
-        }),
+      const data = await api.post('/login/', {
+        email_address: formData.email,
+        password: formData.password,
       })
-      const data = await response.json()
-      if (response.ok) {
-        setUserName(data.user_name)
-        localStorage.setItem('user', JSON.stringify({
-          name: data.user_name,
-          email: data.email,
-          role: data.role,
-          token: data.token,
-          profile_completed: data.profile_completed,
-          profile: data.profile
-        }))
 
-        const target = (data.role === 'farmer' || data.role === 'data_operator')
-          ? '/operator-dashboard'
-          : (data.role === 'vet' ? '/vet-dashboard' : '/')
+      setUserName(data.user_name)
+      localStorage.setItem('user', JSON.stringify({
+        name: data.user_name,
+        email: data.email,
+        role: data.role,
+        token: data.token,
+        profile_completed: data.profile_completed,
+        profile: data.profile
+      }))
 
-        setTimeout(() => navigate(target), 1200)
-      } else {
-        setErrors({ general: data.error || 'Login failed' })
-      }
+      const target = (data.role === 'farmer' || data.role === 'data_operator')
+        ? '/operator-dashboard'
+        : (data.role === 'vet' ? '/vet-dashboard' : '/')
+
+      setTimeout(() => navigate(target), 1200)
     } catch (error) {
-      setErrors({ general: 'Network error' })
+      setErrors({ general: error.message || 'Login failed' })
     } finally {
       setIsSubmitting(false)
     }

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import api from '../services/api'
 
 const speciesOptions = [
     { value: 'MIX', label: 'Mixed (Multi-species)' },
@@ -49,17 +50,12 @@ function EditFarm() {
     useEffect(() => {
         const fetchFarm = async () => {
             try {
-                const response = await fetch(`http://localhost:8000/api/farms/${id}/`)
-                if (response.ok) {
-                    const data = await response.json()
-                    setFormData(data)
-                } else {
-                    alert('Failed to fetch farm details')
-                    navigate('/operator-dashboard')
-                }
+                const data = await api.get(`/farms/${id}/`)
+                setFormData(data)
             } catch (error) {
                 console.error('Error fetching farm:', error)
-                alert('Error fetching farm')
+                alert(error.message || 'Error fetching farm')
+                navigate('/operator-dashboard')
             } finally {
                 setLoading(false)
             }
@@ -82,24 +78,11 @@ function EditFarm() {
     const handleSubmit = async (e) => {
         e.preventDefault()
         try {
-            const response = await fetch(`http://localhost:8000/api/farms/${id}/`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    ...formData,
-                    email: user.email
-                })
-            })
-            if (response.ok) {
-                navigate('/operator-dashboard')
-            } else {
-                alert('Failed to update farm')
-            }
+            await api.put(`/farms/${id}/`, formData)
+            navigate('/operator-dashboard')
         } catch (error) {
             console.error('Error updating farm:', error)
-            alert('Error updating farm')
+            alert(error.message || 'Error updating farm')
         }
     }
 

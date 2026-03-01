@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import VetSidebar from '../components/vet/Sidebar'
+import api from '../services/api'
 import {
   LayoutDashboard,
   ClipboardList,
@@ -100,19 +101,16 @@ function VetDashboard() {
 
     const fetchData = async () => {
       try {
-        const [drugsRes, treatmentsRes, farmsRes] = await Promise.all([
-          fetch('http://localhost:8000/api/reference/drugs/'),
-          fetch(`http://localhost:8000/api/treatments/?vet_email=${user.email}`),
-          fetch(`http://localhost:8000/api/farms/?email=${user.email}`)
+        const [drugsData, treatmentsData, farmsData] = await Promise.all([
+          api.get('/reference/drugs/'),
+          api.get('/treatments/'),
+          api.get('/farms/')
         ])
 
-        if (drugsRes.ok) setDrugs(await drugsRes.json())
-        if (treatmentsRes.ok) {
-          const data = await treatmentsRes.json()
-          setPendingTreatments(data.pending)
-          setTreatmentHistory(data.history)
-        }
-        if (farmsRes.ok) setFarms(await farmsRes.json())
+        setDrugs(drugsData || [])
+        setPendingTreatments(treatmentsData?.pending || [])
+        setTreatmentHistory(treatmentsData?.history || [])
+        setFarms(farmsData || [])
 
         setLoading(false)
       } catch (error) {
@@ -133,8 +131,8 @@ function VetDashboard() {
     if (prescriptionForm.farm_id) {
       const fetchFlocks = async () => {
         try {
-          const res = await fetch(`http://localhost:8000/api/flocks/?farm_id=${prescriptionForm.farm_id}&email=${user.email}`)
-          if (res.ok) setFlocks(await res.json())
+          const data = await api.get(`/flocks/?farm_id=${prescriptionForm.farm_id}`)
+          setFlocks(data)
         } catch (error) {
           console.error('Error fetching flocks:', error)
         }
@@ -151,8 +149,8 @@ function VetDashboard() {
     if (prescriptionForm.flock_id) {
       const fetchAnimals = async () => {
         try {
-          const res = await fetch(`http://localhost:8000/api/animals/?flock_id=${prescriptionForm.flock_id}&email=${user.email}`)
-          if (res.ok) setAnimals(await res.json())
+          const data = await api.get(`/animals/?flock_id=${prescriptionForm.flock_id}`)
+          setAnimals(data)
         } catch (error) {
           console.error('Error fetching animals:', error)
         }
@@ -170,28 +168,20 @@ function VetDashboard() {
 
   const handleTreatmentAction = async (treatmentId, action, modifiedData = null) => {
     try {
-      const response = await fetch(`http://localhost:8000/api/treatments/${treatmentId}/action/`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action,
-          ...(modifiedData || {})
-        })
+      await api.post(`/treatments/${treatmentId}/action/`, {
+        action,
+        ...(modifiedData || {})
       })
 
-      if (response.ok) {
-        setPendingTreatments(prev => prev.filter(t => t.id !== treatmentId))
-        // Refresh history
-        const treatmentsRes = await fetch(`http://localhost:8000/api/treatments/?vet_email=${user.email}`)
-        if (treatmentsRes.ok) {
-          const data = await treatmentsRes.json()
-          setTreatmentHistory(data.history)
-        }
-        setShowModifyModal(false)
-        alert(`Treatment ${action}ed successfully`)
-      }
+      setPendingTreatments(prev => prev.filter(t => t.id !== treatmentId))
+      // Refresh history
+      const data = await api.get('/treatments/')
+      setTreatmentHistory(data.history)
+      setShowModifyModal(false)
+      alert(`Treatment ${action}ed successfully`)
     } catch (error) {
       console.error('Error updating treatment:', error)
+      alert(error.message || `Error updating treatment`)
     }
   }
 
@@ -211,42 +201,29 @@ function VetDashboard() {
   const handlePrescriptionSubmit = async (e) => {
     e.preventDefault()
     try {
-      const response = await fetch('http://localhost:8000/api/treatments/prescribe/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...prescriptionForm,
-          farm: prescriptionForm.farm_id,
-          vet_email: user.email
-        })
+      await api.post('/treatments/prescribe/', {
+        ...prescriptionForm,
+        farm: prescriptionForm.farm_id
       })
 
-      if (response.ok) {
-        alert('Prescription logged successfully!')
-        setPrescriptionForm({
-          farm_id: '',
-          flock_id: '',
-          animal_id: '',
-          antibiotic_name: '',
-          reason: '',
-          treated_for: '',
-          date: new Date().toISOString().split('T')[0]
-        })
-        setActiveTab('treatments')
-        // Refresh treatments
-        const treatmentsRes = await fetch(`http://localhost:8000/api/treatments/?vet_email=${user.email}`)
-        if (treatmentsRes.ok) {
-          const data = await treatmentsRes.json()
-          setPendingTreatments(data.pending)
-          setTreatmentHistory(data.history)
-        }
-      } else {
-        const error = await response.json()
-        alert(error.error || 'Failed to log prescription')
-      }
+      alert('Prescription logged successfully!')
+      setPrescriptionForm({
+        farm_id: '',
+        flock_id: '',
+        animal_id: '',
+        antibiotic_name: '',
+        reason: '',
+        treated_for: '',
+        date: new Date().toISOString().split('T')[0]
+      })
+      setActiveTab('treatments')
+      // Refresh treatments
+      const data = await api.get('/treatments/')
+      setPendingTreatments(data.pending)
+      setTreatmentHistory(data.history)
     } catch (error) {
       console.error('Error prescribing:', error)
-      alert('Error logging prescription')
+      alert(error.message || 'Error logging prescription')
     }
   }
 
@@ -926,21 +903,14 @@ function VetDashboard() {
             <form onSubmit={async (e) => {
               e.preventDefault()
               try {
-                const response = await fetch('http://localhost:8000/api/update-profile/', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ email: user.email, ...profileData })
-                })
-                if (response.ok) {
-                  const data = await response.json()
-                  const updatedUser = { ...user, profile_completed: true, profile: data.user }
-                  localStorage.setItem('user', JSON.stringify(updatedUser))
-                  setProfileCompleted(true)
-                  setShowProfileForm(false)
-                  alert('Profile updated successfully!')
-                }
+                const data = await api.post('/update-profile/', profileData)
+                const updatedUser = { ...user, profile_completed: true, profile: data.user }
+                localStorage.setItem('user', JSON.stringify(updatedUser))
+                setProfileCompleted(true)
+                setShowProfileForm(false)
+                alert('Profile updated successfully!')
               } catch (error) {
-                alert('Error updating profile.')
+                alert(error.message || 'Error updating profile.')
               }
             }} className="space-y-5">
               <div className="space-y-1.5">

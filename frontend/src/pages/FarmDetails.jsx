@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import api from '../services/api'
 
 const speciesMapping = {
   'AVI': 'Avian (Poultry/Birds)',
@@ -24,17 +25,12 @@ function FarmDetails() {
   useEffect(() => {
     const fetchFarm = async () => {
       try {
-        const response = await fetch(`http://localhost:8000/api/farms/${id}/`)
-        if (response.ok) {
-          const data = await response.json()
-          setFarm(data)
-        } else {
-          alert('Failed to fetch farm details')
-          navigate('/operator-dashboard')
-        }
+        const data = await api.get(`/farms/${id}/`)
+        setFarm(data)
       } catch (error) {
         console.error('Error fetching farm:', error)
-        alert('Error fetching farm')
+        alert(error.message || 'Error fetching farm')
+        navigate('/operator-dashboard')
       } finally {
         setLoading(false)
       }
@@ -42,11 +38,8 @@ function FarmDetails() {
 
     const fetchTreatments = async () => {
       try {
-        const response = await fetch(`http://localhost:8000/api/treatments/?farm_id=${id}`)
-        if (response.ok) {
-          const data = await response.json()
-          setActiveTreatments(data)
-        }
+        const data = await api.get(`/treatments/?farm_id=${id}`)
+        setActiveTreatments(data)
       } catch (error) {
         console.error('Error fetching treatments:', error)
       }

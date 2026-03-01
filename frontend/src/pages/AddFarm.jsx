@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import api from '../services/api'
 
 const speciesOptions = [
     { value: 'MIX', label: 'Mixed (Multi-species)' },
@@ -59,24 +60,11 @@ function AddFarm() {
     const handleSubmit = async (e) => {
         e.preventDefault()
         try {
-            const response = await fetch('http://localhost:8000/api/farms/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    ...formData,
-                    email: user.email
-                })
-            })
-            if (response.ok) {
-                navigate('/operator-dashboard')
-            } else {
-                alert('Failed to add farm')
-            }
+            await api.post('/farms/', formData)
+            navigate('/operator-dashboard')
         } catch (error) {
             console.error('Error adding farm:', error)
-            alert('Error adding farm')
+            alert(error.message || 'Error adding farm')
         }
     }
 

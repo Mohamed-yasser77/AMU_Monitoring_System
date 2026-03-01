@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Plus, CheckCircle2, AlertCircle, X, Layers, Activity } from 'lucide-react';
+import api from '../../services/api';
 
 const inputClass = "w-full rounded-lg bg-[#14171a] border border-white/10 text-slate-200 placeholder:text-slate-600 py-3.5 px-4 text-sm focus:outline-none focus:border-[#00c096]/40 focus:ring-2 focus:ring-[#00c096]/10 transition-all";
 const labelClass = "block text-[10px] font-medium text-slate-500 uppercase tracking-widest mb-2";
@@ -53,7 +54,6 @@ const FlockForm = ({ onCancel, onSuccess, farms, userEmail }) => {
         }
 
         const payload = {
-            email: userEmail,
             farm_id: Number(formData.farm_id),
             owner_id: selectedFarm.owner_id, // Farm must be associated with an owner on backend
             flock_code: formData.flock_code,
@@ -66,24 +66,13 @@ const FlockForm = ({ onCancel, onSuccess, farms, userEmail }) => {
         };
 
         try {
-            const response = await fetch('http://localhost:8000/api/flocks/bulk/', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-
-            const data = await response.json();
-
-            if (response.ok) {
-                setSuccessData(data);
-                setTimeout(() => {
-                    onSuccess();
-                }, 2500);
-            } else {
-                setError(data.error || 'Failed to create flock');
-            }
+            const data = await api.post('/flocks/bulk/', payload);
+            setSuccessData(data);
+            setTimeout(() => {
+                onSuccess();
+            }, 2500);
         } catch (err) {
-            setError('Connection error. Please try again.');
+            setError(err.message || 'Failed to create flock');
         } finally {
             setSaving(false);
         }

@@ -5,6 +5,7 @@ import SearchableTable from '../components/operator/SearchableTable';
 import FarmForm from '../components/operator/FarmForm';
 import FlockForm from '../components/operator/FlockForm';
 import { Plus, LayoutGrid, Activity, Home, Users, ChevronRight, TrendingUp, Search, Settings, AlertCircle, CheckCircle, Layers, FileText, XCircle, Bell } from 'lucide-react';
+import api from '../services/api';
 
 const speciesMapping = {
     'AVI': 'Avian',
@@ -55,30 +56,26 @@ const OperatorDashboard = () => {
         if (!user) return;
         setLoading(true);
         try {
-            const email = user.email;
-            const [oRes, fRes, flRes, tRes, pRes] = await Promise.all([
-                fetch(`http://localhost:8000/api/owners/?email=${email}`),
-                fetch(`http://localhost:8000/api/farms/?email=${email}`),
-                fetch(`http://localhost:8000/api/flocks/?email=${email}`),
-                fetch(`http://localhost:8000/api/treatments/?email=${email}`),
-                fetch(`http://localhost:8000/api/problems/?email=${email}`)
+            const [ownersData, farmsData, flocksData, treatmentsData, problemsData] = await Promise.all([
+                api.get('/owners/'),
+                api.get('/farms/'),
+                api.get('/flocks/'),
+                api.get('/treatments/'),
+                api.get('/problems/')
             ]);
-            const ownersData = oRes.ok ? await oRes.json() : [];
-            const farmsData = fRes.ok ? await fRes.json() : [];
-            const flocksData = flRes.ok ? await flRes.json() : [];
-            const treatmentsData = tRes.ok ? await tRes.json() : [];
-            const problemsData = pRes.ok ? await pRes.json() : [];
-            setOwners(ownersData);
-            setFarms(farmsData);
-            setFlocks(flocksData);
+
+            setOwners(ownersData || []);
+            setFarms(farmsData || []);
+            setFlocks(flocksData || []);
 
             // Separate operator-logged requests from direct vet prescriptions
-            const operatorLogs = treatmentsData.filter(t => t.recorded_by__role !== 'vet');
-            const vetLogs = treatmentsData.filter(t => t.recorded_by__role === 'vet');
+            const treatmentsArray = Array.isArray(treatmentsData) ? treatmentsData : [];
+            const operatorLogs = treatmentsArray.filter(t => t.recorded_by__role !== 'vet');
+            const vetLogs = treatmentsArray.filter(t => t.recorded_by__role === 'vet');
 
             setTreatments(operatorLogs);
             setVetDirectives(vetLogs);
-            setProblems(problemsData);
+            setProblems(problemsData || []);
         } catch (err) {
             console.error('Fetch error:', err);
         } finally {

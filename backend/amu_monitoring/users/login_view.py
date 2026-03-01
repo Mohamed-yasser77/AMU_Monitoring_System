@@ -23,17 +23,13 @@ class LoginView(View):
             try:
                 user = User.objects.get(email_address=email_address)
                 
-                # Check password
-                if not check_password(password, user.password):
-                    # Fallback for legacy plaintext passwords (optional, but good for transition)
-                    if user.password == password:
-                        # Auto-migrate to hash
-                        from django.contrib.auth.hashers import make_password
-                        user.password = make_password(password)
-                        user.save()
-                    else:
-                        return JsonResponse({'error': 'Invalid email or password.'}, status=401)
+                # Check password using Django's built-in method
+                if not user.check_password(password):
+                     return JsonResponse({'error': 'Invalid credentials.'}, status=401)
                 
+                if not user.is_active:
+                    return JsonResponse({'error': 'Account is disabled.'}, status=403)
+
                 # Generate JWT
                 token_payload = {
                     'user_id': user.id,
@@ -58,6 +54,8 @@ class LoginView(View):
                     }
                 }, status=200)
             except User.DoesNotExist:
-                return JsonResponse({'error': 'Invalid email or password.'}, status=401)
-        except Exception as e:
-            return JsonResponse({'error': str(e)}, status=500)
+                return JsonResponse({'error': 'Invalid credentials.'}, status=401)
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON format.'}, status=400)
+        except Exception:
+            return JsonResponse({'error': 'Authentication process failed.'}, status=500)

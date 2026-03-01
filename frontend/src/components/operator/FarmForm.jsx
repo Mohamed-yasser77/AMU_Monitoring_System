@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Plus, CheckCircle2, AlertCircle, X } from 'lucide-react';
+import api from '../../services/api';
 
 const inputClass = "w-full rounded-lg bg-[#14171a] border border-white/10 text-slate-200 placeholder:text-slate-600 py-3.5 px-4 text-sm focus:outline-none focus:border-[#00c096]/40 focus:ring-2 focus:ring-[#00c096]/10 transition-all";
 const labelClass = "block text-[10px] font-medium text-slate-500 uppercase tracking-widest mb-2";
@@ -36,7 +37,6 @@ const FarmForm = ({ onCancel, onSuccess, owners, userEmail }) => {
         setError(null);
 
         const payload = {
-            email: userEmail,
             ...formData,
             total_animals: 0,
             avg_weight: 0,
@@ -54,20 +54,10 @@ const FarmForm = ({ onCancel, onSuccess, owners, userEmail }) => {
         }
 
         try {
-            const response = await fetch('http://localhost:8000/api/farms/', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-
-            if (response.ok) {
-                onSuccess();
-            } else {
-                const errData = await response.json();
-                setError(errData.error || 'Failed to create farm');
-            }
+            await api.post('/farms/', payload);
+            onSuccess();
         } catch (err) {
-            setError('Connection error. Please try again.');
+            setError(err.message || 'Failed to create farm');
         } finally {
             setSaving(false);
         }

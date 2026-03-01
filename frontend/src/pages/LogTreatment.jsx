@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Activity, Beaker, Calendar, ClipboardList, CheckCircle2, AlertCircle, ArrowLeft, ChevronRight, Layers, Tag as TagIcon } from 'lucide-react';
+import api from '../services/api';
 
 const LogTreatment = () => {
   const navigate = useNavigate();
@@ -46,13 +47,10 @@ const LogTreatment = () => {
 
     const fetchFarms = async () => {
       try {
-        const response = await fetch(`http://localhost:8000/api/farms/?email=${user.email}`);
-        if (response.ok) {
-          const data = await response.json();
-          setFarms(data);
-          if (data.length > 0 && !formData.farm) {
-            setFormData(prev => ({ ...prev, farm: data[0].id.toString() }));
-          }
+        const data = await api.get('/farms/');
+        setFarms(data);
+        if (data.length > 0 && !formData.farm) {
+          setFormData(prev => ({ ...prev, farm: data[0].id.toString() }));
         }
       } catch (err) {
         console.error('Error fetching farms:', err);
@@ -69,8 +67,7 @@ const LogTreatment = () => {
     if (formData.farm) {
       setFlocks([]);
       setFormData(prev => ({ ...prev, flock_id: '', animal_id: '' }));
-      fetch(`http://localhost:8000/api/flocks/?email=${user.email}&farm_id=${formData.farm}`)
-        .then(res => res.json())
+      api.get(`/flocks/?farm_id=${formData.farm}`)
         .then(data => {
           if (Array.isArray(data)) {
             setFlocks(data);
@@ -84,8 +81,7 @@ const LogTreatment = () => {
     if (formData.flock_id) {
       setAnimals([]);
       setFormData(prev => ({ ...prev, animal_id: '' }));
-      fetch(`http://localhost:8000/api/animals/?email=${user.email}&flock_id=${formData.flock_id}`)
-        .then(res => res.json())
+      api.get(`/animals/?flock_id=${formData.flock_id}`)
         .then(data => {
           if (Array.isArray(data)) {
             setAnimals(data);
@@ -108,8 +104,7 @@ const LogTreatment = () => {
     }
 
     if (species) {
-      fetch(`http://localhost:8000/api/reference/molecules/?species=${species}`)
-        .then(res => res.json())
+      api.get(`/reference/molecules/?species=${species}`)
         .then(data => {
           if (Array.isArray(data)) {
             setAntibiotics(data);
@@ -135,28 +130,17 @@ const LogTreatment = () => {
 
     const payload = {
       ...formData,
-      email: user.email,
       farm: Number(formData.farm),
       flock_id: formData.flock_id ? Number(formData.flock_id) : null,
       animal_id: formData.animal_id ? Number(formData.animal_id) : null
     };
 
     try {
-      const response = await fetch('http://localhost:8000/api/treatments/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-
-      if (response.ok) {
-        setSuccess(true);
-        setTimeout(() => navigate('/operator-dashboard'), 2000);
-      } else {
-        const data = await response.json();
-        setError(data.error || 'Failed to log treatment');
-      }
+      await api.post('/treatments/', payload);
+      setSuccess(true);
+      setTimeout(() => navigate('/operator-dashboard'), 2000);
     } catch (err) {
-      setError('Connection error. Please try again.');
+      setError(err.message || 'Failed to log treatment');
     } finally {
       setSaving(false);
     }
