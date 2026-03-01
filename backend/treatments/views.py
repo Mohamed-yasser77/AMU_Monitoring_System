@@ -93,9 +93,12 @@ class TreatmentListCreateView(View):
             if not farm_id:
                 return JsonResponse({'error': 'Farm ID required'}, status=400)
             
-            # Ensure the operator owns this farm
+            # Ensure the operator owns this farm (except if user is vet)
             try:
-                farm = Farm.objects.get(id=farm_id, user=user)
+                if user.role == 'vet':
+                    farm = Farm.objects.get(id=farm_id)
+                else:
+                    farm = Farm.objects.get(id=farm_id, user=user)
             except Farm.DoesNotExist:
                 return JsonResponse({'error': 'Farm not found or not owned by you'}, status=404)
 
@@ -178,6 +181,11 @@ class TreatmentActionView(View):
                 return JsonResponse({'error': 'Invalid action'}, status=400)
 
             treatment = Treatment.objects.get(id=treatment_id)
+            
+            # Authorization: Vet must be assigned or in the same district
+            if treatment.vet != user:
+                if not user.district or treatment.farm.district != user.district:
+                     return JsonResponse({'error': 'You do not have authority over this treatment'}, status=403)
             
             if action == 'approve':
                 treatment.status = 'approved'

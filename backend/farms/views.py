@@ -75,8 +75,13 @@ class FarmListCreateView(View):
 @method_decorator(login_required_json, name='dispatch')
 class FarmDetailView(View):
     def get(self, request, farm_id):
+        user = request.user
         try:
-            farm = Farm.objects.get(id=farm_id)
+            if user.role == 'vet':
+                farm = Farm.objects.get(id=farm_id)
+            else:
+                farm = Farm.objects.get(id=farm_id, user=user)
+            
             data = model_to_dict(farm)
             
             # Add flock data with withdrawal status
@@ -100,8 +105,13 @@ class FarmDetailView(View):
             return JsonResponse({'error': str(e)}, status=500)
 
     def put(self, request, farm_id):
+        user = request.user
         try:
-            farm = Farm.objects.get(id=farm_id)
+            if user.role == 'vet':
+                farm = Farm.objects.get(id=farm_id)
+            else:
+                farm = Farm.objects.get(id=farm_id, user=user)
+
             data = json.loads(request.body)
 
             farm.name = data.get('name', farm.name)
@@ -187,7 +197,11 @@ class OwnerDetailView(View):
             return JsonResponse({'error': 'Not authorized'}, status=403)
 
         try:
-            owner = Owner.objects.get(id=owner_id)
+            if user.role == 'data_operator':
+                owner = Owner.objects.get(id=owner_id, created_by=user)
+            else:
+                owner = Owner.objects.get(id=owner_id)
+
             flocks = owner.flocks.all().select_related('farm')
             problems = owner.problems.select_related('flock', 'animal')
 
@@ -249,7 +263,8 @@ class OwnerDetailView(View):
             user = request.user
             if user.role != 'data_operator':
                 return JsonResponse({'error': 'Only data operators can update owners'}, status=403)
-            owner = Owner.objects.get(id=owner_id)
+            
+            owner = Owner.objects.get(id=owner_id, created_by=user)
 
             owner.name = data.get('name', owner.name)
             owner.phone_number = data.get('phone_number', owner.phone_number)
@@ -445,7 +460,11 @@ class AnimalListCreateView(View):
             if not flock_id:
                 return JsonResponse({'error': 'Flock id required'}, status=400)
 
-            flock = Flock.objects.get(id=flock_id)
+            # Ensure flock belongs to user's farm if operator
+            if user.role == 'data_operator':
+                flock = Flock.objects.get(id=flock_id, farm__user=user)
+            else:
+                flock = Flock.objects.get(id=flock_id)
 
             animal = Animal.objects.create(
                 flock=flock,
@@ -511,7 +530,11 @@ class ProblemListCreateView(View):
             if not owner_id:
                 return JsonResponse({'error': 'Owner id required'}, status=400)
 
-            owner = Owner.objects.get(id=owner_id)
+            if owner_id:
+                if user.role == 'data_operator':
+                    owner = Owner.objects.get(id=owner_id, created_by=user)
+                else:
+                    owner = Owner.objects.get(id=owner_id)
 
             flock_id = data.get('flock_id')
             animal_id = data.get('animal_id')
@@ -520,9 +543,15 @@ class ProblemListCreateView(View):
             animal = None
 
             if flock_id:
-                flock = Flock.objects.get(id=flock_id)
+                if user.role == 'data_operator':
+                    flock = Flock.objects.get(id=flock_id, farm__user=user)
+                else:
+                    flock = Flock.objects.get(id=flock_id)
             if animal_id:
-                animal = Animal.objects.get(id=animal_id)
+                if user.role == 'data_operator':
+                    animal = Animal.objects.get(id=animal_id, flock__farm__user=user)
+                else:
+                    animal = Animal.objects.get(id=animal_id)
 
             problem = Problem.objects.create(
                 owner=owner,
