@@ -1,0 +1,71 @@
+﻿
+=================================================================
+AMU RAG ΓÇö Retrieval Reliability Test Suite
+=================================================================
+
+Γû╢ SECTION 1: Vector Retrieval ΓÇö Molecule Variety
+
+  Γ£à PASS  Oxytetracycline MRL ΓÇö BOV
+        max_sim=0.7856 | top_src=EU_Contaminant_Compendium_2022 p.39
+  Γ£à PASS  Amoxicillin critically important classification
+        max_sim=0.7990 | top_src=WHO_AGISAR_2019 p.23
+  Γ£à PASS  Enrofloxacin WHO classification
+        max_sim=0.7614 | top_src=EU_Contaminant_Compendium_2022 p.41
+  Γ£à PASS  Colistin AMR resistance guidelines (top-5)
+        max_sim=0.7963 | chunks_above_0.72=5/5
+  Γ£à PASS  Tetracycline poultry withdrawal ΓÇö AVI filter
+        max_sim=0.7686 | flagged=False
+
+Γû╢ SECTION 2: Vector Retrieval ΓÇö Query Type Variety
+
+  Γ£à PASS  Prudent use principles (regulatory)
+        max_sim=0.8387
+  Γ£à PASS  PK data and withdrawal periods (PK filter)
+        max_sim=0.7904 | chunks=3
+  Γ£à PASS  AMU farm-level monitoring
+        max_sim=0.8868 | top_src=FAO_AMU_Farm_Guidelines p.8
+  Γ£à PASS  OIE critically important antimicrobials
+        max_sim=0.8950 | top_src=WHO_AGISAR_2019 p.8
+  Γ£à PASS  EU MRL regulation
+        max_sim=0.8189
+
+Γû╢ SECTION 3: Edge Cases ΓÇö Low Confidence & Out-of-Scope
+
+  Γ¥î FAIL  Completely irrelevant query ΓÇö must be flagged
+        max_sim=0.7268 | flagged=False (should be True for out-of-scope)
+  Γ£à PASS  Vague 2-word query
+        max_sim=0.7244 | flagged=False
+  Γ£à PASS  OVI (sheep) species filter ΓÇö sparse in data
+        max_sim=0.8267 | chunks=3
+
+Γû╢ SECTION 4: CSV Lookups ΓÇö All Species in Data
+
+  Γ£à PASS  Withdrawal period ΓÇö Colistin / BOV
+        withdrawal_days=7
+  Γ£à PASS  Withdrawal period ΓÇö Colistin / SUI
+        withdrawal_days=1
+  Γ£à PASS  Unknown molecule ΓåÆ None ΓåÆ RAG fallback trigger
+        result=None (None = correct, triggers RAG fallback)
+  Γ£à PASS  MRL lookup ΓÇö Colistin BOV Muscle
+        mrl=0.15 mg/kg for BOV Muscle
+  Γ£à PASS  MRL lookup ΓÇö Colistin SUI Kidney
+        mrl=0.15 mg/kg for SUI Kidney
+  Γ£à PASS  MRL lookup ΓÇö case insensitive matching
+        lower=4 rows, upper=4 rows (must match)
+
+=================================================================
+RESULTS SUMMARY
+=================================================================
+
+  Total tests  : 19
+  Γ£à PASS       : 18
+  ΓÜá∩╕Å  WARN       : 0
+  Γ¥î FAIL       : 1
+
+  Score: 18/19 passed  (94%)
+
+  FAILED TESTS:
+    - Completely irrelevant query ΓÇö must be flagged: max_sim=0.7268 | flagged=False (should be True for out-of-scope)
+
+=================================================================
+

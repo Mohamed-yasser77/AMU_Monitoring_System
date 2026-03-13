@@ -130,14 +130,20 @@ class Flock(models.Model):
                 if days_list:
                     max_days = max(days_list)
             
-            if max_days > 0:
+            # Prioritize the explicitly stored safe_harvest_date if available
+            if hasattr(treatment, 'safe_harvest_date') and treatment.safe_harvest_date:
+                treatment_safe_date = treatment.safe_harvest_date
+            elif max_days > 0:
                 # Safe date = date treatment was administered + withdrawal days
                 treatment_safe_date = treatment.date + timedelta(days=max_days)
+            else:
+                continue
                 
-                if max_safe_date is None or treatment_safe_date > max_safe_date:
-                    max_safe_date = treatment_safe_date
+            if max_safe_date is None or treatment_safe_date > max_safe_date:
+                max_safe_date = treatment_safe_date
         
-        if max_safe_date and today <= max_safe_date:
+        # Boundary Fix: If today IS the safe date, it should be CLEARED (today < safe_date)
+        if max_safe_date and today < max_safe_date:
             is_under_withdrawal = True
             
         return {

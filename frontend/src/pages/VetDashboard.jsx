@@ -43,7 +43,8 @@ function VetDashboard() {
     method_intake: '',
     reason: '',
     treated_for: '',
-    vet_notes: ''
+    vet_notes: '',
+    safe_harvest_date: ''
   })
 
   // Prescription Form State
@@ -54,7 +55,8 @@ function VetDashboard() {
     antibiotic_name: '',
     reason: '',
     treated_for: '',
-    date: new Date().toISOString().split('T')[0]
+    date: new Date().toISOString().split('T')[0],
+    safe_harvest_date: ''
   })
 
   // Dependent Selection Data
@@ -193,7 +195,8 @@ function VetDashboard() {
       method_intake: t.method_intake || '',
       reason: t.reason || '',
       treated_for: t.treated_for || '',
-      vet_notes: t.vet_notes || ''
+      vet_notes: t.vet_notes || '',
+      safe_harvest_date: t.safe_harvest_date || ''
     })
     setShowModifyModal(true)
   }
@@ -214,7 +217,8 @@ function VetDashboard() {
         antibiotic_name: '',
         reason: '',
         treated_for: '',
-        date: new Date().toISOString().split('T')[0]
+        date: new Date().toISOString().split('T')[0],
+        safe_harvest_date: ''
       })
       setActiveTab('treatments')
       // Refresh treatments
@@ -411,6 +415,7 @@ function VetDashboard() {
                           <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Farm/Owner</th>
                           <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Target</th>
                           <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Molecule/Drug</th>
+                          <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest whitespace-nowrap">Safe Date</th>
                           <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Issue</th>
                           <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest text-right">Actions</th>
                         </tr>
@@ -432,6 +437,11 @@ function VetDashboard() {
                             <td className="px-6 py-4">
                               <div className="text-sm font-medium text-slate-300">{t.antibiotic_name}</div>
                               <div className="text-[10px] text-slate-500 font-bold uppercase tracking-tight">{t.date}</div>
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="text-[10px] font-black uppercase tracking-widest text-[#00c096]">
+                                {t.safe_harvest_date || 'TBD'}
+                              </div>
                             </td>
                             <td className="px-6 py-4 capitalize font-medium text-slate-400 text-xs">
                               {t.reason.replace('_', ' ')} / {t.treated_for}
@@ -499,6 +509,9 @@ function VetDashboard() {
                                 <div className="text-[10px] text-teal-accent uppercase font-medium">Animal: {t.animal__animal_tag}</div>
                               ) : (
                                 <div className="text-[10px] text-indigo-400 uppercase font-medium">Flock: {t.flock__flock_tag}</div>
+                              )}
+                              {t.safe_harvest_date && (
+                                <div className="text-[9px] text-[#00c096] font-bold mt-1 uppercase tracking-widest whitespace-nowrap">Safe: {t.safe_harvest_date}</div>
                               )}
                             </td>
                             <td className="px-6 py-4">
@@ -645,6 +658,16 @@ function VetDashboard() {
                         value={prescriptionForm.date}
                         onChange={e => setPrescriptionForm({ ...prescriptionForm, date: e.target.value })}
                         className="w-full rounded-xl border-white/5 bg-slate-900/50 px-4 py-3 text-sm text-white focus:border-teal-accent focus:ring-teal-accent transition-all outline-none"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Safe Harvest Date</label>
+                      <input
+                        type="date"
+                        value={prescriptionForm.safe_harvest_date}
+                        onChange={e => setPrescriptionForm({ ...prescriptionForm, safe_harvest_date: e.target.value })}
+                        className="w-full rounded-xl border-white/5 bg-slate-900/50 px-4 py-3 text-sm text-white focus:border-teal-accent focus:ring-teal-accent transition-all outline-none border border-teal-accent/20"
                       />
                     </div>
                   </div>
@@ -844,6 +867,15 @@ function VetDashboard() {
                       <option value="prophylactic" className="bg-slate-900">Prophylactic</option>
                       <option value="other" className="bg-slate-900">Other</option>
                     </select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Safe Harvest Date</label>
+                    <input
+                      type="date"
+                      value={modifyForm.safe_harvest_date}
+                      onChange={e => setModifyForm({ ...modifyForm, safe_harvest_date: e.target.value })}
+                      className="w-full rounded-xl border-white/5 bg-slate-900/50 px-4 py-3 text-sm text-white focus:border-teal-accent focus:ring-teal-accent transition-all outline-none border border-teal-accent/20"
+                    />
                   </div>
                 </div>
 

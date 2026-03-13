@@ -1,8 +1,18 @@
 # Documentation and data folder
 Documentation and data/
 
-# Python cache
+# Secrets — NEVER commit these
+.env
+*.env
+api_key.txt
+*_key.txt
+*_secret.txt
+
+# Python
 __pycache__/
+*.pyc
+*.pyo
+myenv/
 
 # OS
 .DS_Store
@@ -17,3 +27,9 @@ Thumbs.db
 
 # Node modules
 node_modules/
+
+# AI vectorstore (large binary files, rebuild from ingest)
+backend/ai/vectorstore/
+
+# SQLite (dev only, not for Git)
+*.sqlite3

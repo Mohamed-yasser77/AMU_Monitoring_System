@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'farms',
     'treatments',
     'reference_data',
+    'ai',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
@@ -164,4 +165,17 @@ CSRF_TRUSTED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
 ]
+
+# AI / RAG Settings
+GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
+GEMINI_MODEL = os.getenv('GEMINI_MODEL', 'gemini-2.5-flash')
+CHROMA_PERSIST_DIR = os.path.join(BASE_DIR, 'ai', 'vectorstore')
+AI_RATE_LIMIT_PER_DAY = 20
+
+# Django cache (in-memory for dev; swap to Redis for production)
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+    }
+}
 

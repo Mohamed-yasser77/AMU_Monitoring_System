@@ -585,6 +585,14 @@ const OperatorDashboard = () => {
                                     },
                                     { header: 'Date', accessor: 'date' },
                                     {
+                                        header: 'Safe Date',
+                                        render: (row) => (
+                                            <span className="text-[10px] font-black uppercase tracking-widest text-[#00c096]">
+                                                {row.safe_harvest_date || 'TBD'}
+                                            </span>
+                                        )
+                                    },
+                                    {
                                         header: 'Status',
                                         render: (row) => {
                                             const cls = {

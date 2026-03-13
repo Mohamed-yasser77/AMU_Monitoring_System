@@ -40,6 +40,7 @@ class Treatment(models.Model):
     reason = models.CharField(max_length=20, choices=REASON_CHOICES)
     treated_for = models.CharField(max_length=20, choices=TREATED_FOR_CHOICES)
     date = models.DateField()
+    safe_harvest_date = models.DateField(null=True, blank=True, help_text="AI-predicted or manually set safe harvest date")
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

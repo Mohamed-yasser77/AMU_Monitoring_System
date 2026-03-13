@@ -9,6 +9,7 @@ import FarmDetails from './pages/FarmDetails'
 import LearnMore from './pages/LearnMore'
 import LogTreatment from './pages/LogTreatment'
 import VetDashboard from './pages/VetDashboard'
+import AiAssistantDrawer from './components/ai/AiAssistantDrawer'
 
 const RootRoute = () => {
   const user = JSON.parse(localStorage.getItem('user'))
@@ -34,6 +35,7 @@ function App() {
         <Route path="/farm-details/:id" element={<FarmDetails />} />
         <Route path="/learn-more" element={<LearnMore />} />
       </Routes>
+      <AiAssistantDrawer />
     </Router>
   )
 }

@@ -40,7 +40,7 @@ class TreatmentListCreateView(View):
                         unassigned.save()
 
                 base_fields = (
-                    'id', 'antibiotic_name', 'dosage', 'method_intake', 'vet_notes', 'reason', 'treated_for', 'date',
+                    'id', 'antibiotic_name', 'dosage', 'method_intake', 'vet_notes', 'reason', 'treated_for', 'date', 'safe_harvest_date',
                     'farm__name', 'farm__farm_number', 'farm__village', 'farm__district', 'status',
                     'flock_id', 'flock__flock_tag', 'animal_id', 'animal__animal_tag', 'recorded_by__role',
                     'flock__species_type', 'flock__avg_weight', 'flock__avg_feed_consumption', 'flock__avg_water_consumption'
@@ -64,7 +64,7 @@ class TreatmentListCreateView(View):
                      qs = qs.filter(farm__user=user)
                      
                  treatments = qs.order_by('-date').values(
-                    'id', 'antibiotic_name', 'dosage', 'method_intake', 'vet_notes', 'reason', 'treated_for', 'date', 'status',
+                    'id', 'antibiotic_name', 'dosage', 'method_intake', 'vet_notes', 'reason', 'treated_for', 'date', 'safe_harvest_date', 'status',
                     'flock_id', 'flock__flock_tag', 'flock__flock_code',
                     'animal_id', 'animal__animal_tag',
                  )
@@ -75,7 +75,7 @@ class TreatmentListCreateView(View):
                 treatments = Treatment.objects.filter(
                     farm__user=user
                 ).order_by('-date').values(
-                    'id', 'antibiotic_name', 'dosage', 'method_intake', 'vet_notes', 'reason', 'treated_for', 'date',
+                    'id', 'antibiotic_name', 'dosage', 'method_intake', 'vet_notes', 'reason', 'treated_for', 'date', 'safe_harvest_date',
                     'farm__name', 'farm__farm_number', 'status',
                     'flock_id', 'flock__flock_tag', 'flock__flock_code',
                     'animal_id', 'animal__animal_tag', 'recorded_by__role'
@@ -153,7 +153,8 @@ class TreatmentListCreateView(View):
                 vet_notes=data.get('vet_notes'),
                 reason=data.get('reason'),
                 treated_for=data.get('treated_for'),
-                date=data.get('date')
+                date=data.get('date'),
+                safe_harvest_date=data.get('safe_harvest_date')
             )
             
             return JsonResponse({
@@ -196,6 +197,7 @@ class TreatmentActionView(View):
                 if data.get('dosage'): treatment.dosage = data.get('dosage')
                 if data.get('method_intake'): treatment.method_intake = data.get('method_intake')
                 if data.get('vet_notes'): treatment.vet_notes = data.get('vet_notes')
+                if data.get('safe_harvest_date'): treatment.safe_harvest_date = data.get('safe_harvest_date')
             elif action == 'reject':
                 treatment.status = 'rejected'
                 if data.get('vet_notes'): treatment.vet_notes = data.get('vet_notes')
@@ -253,7 +255,8 @@ class PrescriptionCreateView(View):
                 vet_notes=data.get('vet_notes'),
                 reason=data.get('reason'),
                 treated_for=data.get('treated_for'),
-                date=data.get('date')
+                date=data.get('date'),
+                safe_harvest_date=data.get('safe_harvest_date')
             )
             
             return JsonResponse({

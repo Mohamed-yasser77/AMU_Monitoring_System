@@ -27,5 +27,6 @@ urlpatterns = [
     path('api/', include('farms.urls')),
     path('api/treatments/', include('treatments.urls')),
     path('api/reference/', include('reference_data.urls')),
+    path('api/ai/', include('ai.urls')),
 ]
 
