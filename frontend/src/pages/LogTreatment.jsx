@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Activity, Beaker, Calendar, ClipboardList, CheckCircle2, AlertCircle, ArrowLeft, ChevronRight, Layers, Tag as TagIcon, Zap } from 'lucide-react';
 import api from '../services/api';
-import HarvestForecastWidget from '../components/ai/HarvestForecastWidget';
+
 
 const LogTreatment = () => {
   const navigate = useNavigate();
@@ -235,12 +235,7 @@ const LogTreatment = () => {
             </div>
           </div>
 
-          <HarvestForecastWidget
-            molecule={formData.antibiotic_name}
-            species={selectedSpecies}
-            treatmentDate={formData.date}
-            onApplyDate={(date) => setFormData(prev => ({ ...prev, safe_harvest_date: date }))}
-          />
+
         </div>
 
         {/* Form Panel */}
@@ -344,27 +339,18 @@ const LogTreatment = () => {
                   </div>
                 </div>
 
-                <div className="md:col-span-2 animate-enter">
-                  <div className="flex justify-between items-center mb-1">
-                    <label className={labelClass + " mb-0"}>Safe Harvest Date</label>
-                    <div className="flex items-center gap-1.5 opacity-60">
-                      <Zap size={10} className="text-[#00c096]" />
-                      <span className="text-[9px] font-black uppercase tracking-widest text-slate-500">AI Verified Range</span>
+                <div className="space-y-2">
+                  <label className={labelClass}>Safe Harvest Date</label>
+                    <div className="relative group">
+                      <input
+                        type="date"
+                        name="safe_harvest_date"
+                        value={formData.safe_harvest_date}
+                        onChange={handleChange}
+                        className={inputClass}
+                      />
+                      <Calendar size={18} className={`absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none transition-colors ${darkMode ? 'text-slate-600 group-focus-within:text-teal-400' : 'text-slate-300 group-focus-within:text-primary-600'}`} />
                     </div>
-                  </div>
-                  <div className="relative group/harvest">
-                    <input
-                      type="date"
-                      name="safe_harvest_date"
-                      value={formData.safe_harvest_date}
-                      onChange={handleChange}
-                      className={inputClass + ` ${formData.safe_harvest_date ? 'border-[#00c096]/30 bg-[#00c096]/5' : ''}`}
-                    />
-                    <CheckCircle2 size={18} className={`absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none transition-all ${formData.safe_harvest_date
-                        ? 'text-[#00c096] scale-100'
-                        : 'text-slate-600 opacity-20 scale-75'
-                      }`} />
-                  </div>
                 </div>
               </div>
             </section>

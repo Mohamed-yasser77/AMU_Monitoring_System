@@ -16,24 +16,6 @@ const aiService = {
         }
     },
 
-    /**
-     * Predicts the safe harvest date based on treatment data.
-     * @param {string} molecule - Drug name.
-     * @param {string} species - Animal species.
-     * @param {string} treatmentDate - YYYY-MM-DD.
-     */
-    predictSafeHarvest: async (molecule, species, treatmentDate) => {
-        try {
-            const response = await api.post('/ai/harvest-forecast/', {
-                molecule,
-                species,
-                treatment_date: treatmentDate
-            });
-            return response;
-        } catch (error) {
-            console.error('AI Harvest Forecast Error:', error);
-            throw error;
-        }
     }
 };
 

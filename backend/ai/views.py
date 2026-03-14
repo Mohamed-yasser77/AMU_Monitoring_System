@@ -19,7 +19,7 @@ from django.utils import timezone
 from .models import AIQueryLog
 from .retrieval.retriever import retrieve, lookup_withdrawal_period, lookup_mrl
 from .llm.router import classify_query
-from .llm.generator import generate_response, generate_structured_response
+from .llm.generator import generate_response
 from amu_monitoring.utils import login_required_json
 
 RATE_LIMIT_PER_DAY = getattr(settings, 'AI_RATE_LIMIT_PER_DAY', 20)
@@ -30,26 +30,38 @@ GEMINI_MODEL = getattr(settings, 'GEMINI_MODEL', 'gemini-2.5-flash')
 def _check_rate_limit(user) -> bool:
     """
     Returns True if user is within their daily AI query limit.
-    Uses atomic cache increment to prevent pulse-rate race conditions.
+    Checks cache first for performance, falls back to DB if cache is empty.
     """
     key = f"ai_limit_{user.id}_{timezone.now().date()}"
     limit = getattr(settings, 'AI_RATE_LIMIT_PER_DAY', 20)
     
     try:
-        # Get or set initial value
-        current = cache.get(key)
-        if current is None:
-            cache.set(key, 1, timeout=86400)
+        # 1. Try to increment directly (most atomic operation available)
+        try:
+            current = cache.incr(key)
+            if current > limit:
+                return False
             return True
-            
-        if current >= limit:
+        except ValueError:
+            # Key doesn't exist in cache
+            pass
+
+        # 2. Key is missing from cache - we MUST check the DB before allowing the request
+        today = timezone.now().date()
+        db_count = AIQueryLog.objects.filter(user=user, created_at__date=today).count()
+        
+        if db_count >= limit:
+            # Sync cache so we don't hit DB again today
+            cache.set(key, db_count, timeout=86400)
             return False
-            
-        # Atomic increment
-        cache.incr(key)
+
+        # 3. Success - populate cache with db_count + 1
+        cache.set(key, db_count + 1, timeout=86400)
         return True
-    except Exception:
-        # If cache fails, fallback to DB check (safer than failing open)
+
+    except Exception as e:
+        logger.error(f"Rate limit check failed: {e}")
+        # Final fallback to standard DB check
         today = timezone.now().date()
         count = AIQueryLog.objects.filter(user=user, created_at__date=today).count()
         return count < limit
@@ -133,6 +145,9 @@ class RegulatoryQueryView(View):
             'confidence': result['confidence'],
             'source': result['source'],
             'flagged_for_review': result['flagged_for_review'],
+            'grounding_passed': result.get('grounding_passed', True),
+            'ungrounded_items': result.get('ungrounded_items', []),
+            'supporting_quotes': result.get('quotes', []),
         }
 
         # Log the query
@@ -237,65 +252,10 @@ class HarvestForecastView(View):
             cache.set(cache_key, response_data, timeout=86400)
             return JsonResponse(response_data, status=200)
 
-        # ── Step 2: RAG fallback for molecules not in CSV ──────────────────────
-        rag_query = f"withdrawal period for {molecule} in {species} animals"
-        retrieval = retrieve(
-            query=rag_query,
-            species_filter=species,
-            source_type_filter='pharmacokinetic',
-            top_k=3
-        )
-
-        if retrieval.get('error') or not retrieval['chunks']:
-            return JsonResponse({
-                'safe_harvest_date': None,
-                'confidence': 0.0,
-                'flagged_for_review': True,
-                'error': f'No withdrawal data found for {molecule} ({species}). Please consult a veterinarian.',
-            }, status=200)
-
-        # Let LLM extract the withdrawal period from PK chunks using structured output
-        result = generate_structured_response(
-            query=rag_query,
-            chunks=retrieval['chunks'],
-            max_similarity=retrieval['max_similarity'],
-        )
-
-        # Python does the math — LLM only provides extraction
-        withdrawal_days = result.get('withdrawal_days')
-        if isinstance(withdrawal_days, (int, float)) and not result.get('flagged_for_review'):
-            withdrawal_days = int(withdrawal_days)
-            safe_date = treatment_date + timedelta(days=withdrawal_days)
-        else:
-            # Cannot safely compute — flag it
-            withdrawal_days = withdrawal_days
-            safe_date = None
-
-        response_data = {
-            'safe_harvest_date': safe_date.isoformat() if safe_date else None,
-            'withdrawal_days': withdrawal_days,
-            'half_life_source': result.get('source'),
-            'confidence': retrieval['max_similarity'],
-            'flagged_for_review': result.get('flagged_for_review') or safe_date is None,
-            'method': 'rag_retrieval',
-            'rag_context_summary': result.get('reasoning'),
-        }
-
-        AIQueryLog.objects.create(
-            user=request.user,
-            query_type='harvest_forecast',
-            query_text=f"Harvest forecast: {molecule} / {species} / {treatment_date_str}",
-            species=species,
-            molecule=molecule,
-            response_text=str(response_data),
-            confidence=retrieval.get('max_similarity', 0.0), # Use retrieval similarity
-            source_citation=result.get('source'),
-            flagged_for_review=response_data['flagged_for_review'],
-            retrieved_chunk_ids=[c['metadata'].get('chunk_id', '') for c in retrieval['chunks']],
-            model_version=GEMINI_MODEL,
-        )
-
-        if not response_data['flagged_for_review']:
-            cache.set(cache_key, response_data, timeout=86400)
-
-        return JsonResponse(response_data, status=200)
+        # ── Step 2: RAG fallback for molecules not in CSV (Removed) ────────────────
+        return JsonResponse({
+            'safe_harvest_date': None,
+            'confidence': 0.0,
+            'flagged_for_review': True,
+            'error': f'No deterministic withdrawal data found for {molecule} ({species}). Please consult a veterinarian.',
+        }, status=200)

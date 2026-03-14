@@ -3,131 +3,111 @@ You are a helpful and precise regulatory assistant for an antimicrobial usage (A
 
 RULES:
 1. ONLY USE THE PROVIDED CONTEXT. If the answer is not in the context, clearly state what information is missing.
-2. BE HELPFUL WITH TERMINOLOGY: If a user's phrasing (e.g., "very highly important") doesn't exactly match the source (e.g., "Highest Priority Critically Important"), use the context to explain the distinction and provide the most relevant information.
-3. GROUNDING: Every specific claim or value must be supported by a source chunk.
-4. CITATION: Always cite the source (Document and Page) at the end of your answer.
-5. NO HALLUCINATION: If no relevant information exists at all, say: "I could not find a reliable source for this in the available regulatory documents."
-
-FORMAT:
-<your detailed answer based on context>
-
-Source: <document_name> p.<page_number>
+2. EXACT QUOTES: For every claim you make, you MUST provide the exact sentence(s) from the context that supports it. These must be VERBATIM.
+3. BE HELPFUL WITH TERMINOLOGY: Explain distinctions (e.g., "very highly important" vs "Highest Priority Critically Important").
+4. NO HALLUCINATION: If no relevant information exists, state that clearly in the answer.
+5. OUTPUT: Provide structured JSON matching the requested schema.
 
 
 USER MESSAGE:
 CONTEXT:
-[1] SOURCE: WHO_AGISAR_2019 p.48
-of an antimicrobial agent relative to the susceptible counterpart of the 
-same species.  
+[1] SOURCE: FAO_AMU_Farm_Guidelines p.73
+Regional Guidelines on Monitoring and Surveillance of Antimicrobial Resistance, Use and Residues in Food and Agriculture – Volume 5 58 
+Scenario A – use of the pre-slaughter weight: AMU is monitored for a whole year in a swine farm. In this country, the average national pre-slaughter 
+weight is known to be 105 kg. We don’t know the dates of treatment and to what types of animals the 
+antimicrobials were administered. However, we know that the farm sends 500 pigs to the 
+slaughterhouse per year on average and that it used 2 200 000 mg of AAS during the year of study. 
+Using the pre-slaughter weight, the farm has used 2 200 000/(500 × 105) = 42 mg/kg. 
+Scenario B – use of the weight at treatment or weight per production stage: 
+In the same country, another pig farmer treated: 
+•10 piglets (out of 90 piglets) for 5 days with 0.25 ml/day of a veterinary product containing enrofloxacin 
+(100mg/ml) by injection. 
+•16 fattening pigs (out of 95 fattening pigs) for 3 days with 4 ml/day with a veterinary product containing 
+tylosin (200 mg/ml). 
+The average weight of a piglet is considered to be 15 kg and the average weight of a fattening pig is 75 kg. 
+At the time of treatment, piglets were 10 kg and fattening pigs were 80 kg. 
+Calculation of the numerator: 
+Weight of enrofloxacin: 10 × 5 × 0.25 × 100 = 1 250 mg 
+Weight of tylosin: 16 × 3 × 4 × 200 = 38 400 mg 
+Calculation of the weight-based indicators: 
+•Using the average animal weight per production stage 
+ = 6.32 mg/kg 
+•Using the actual animal weight at each treatment 
+ = 6.44 mg/kg 
+iv. Calculating dosed-based 
+indicators 
+The numerator consists of a 
+number of doses while the 
+denominator is usually 
+expressed in terms of animal 
+biomass or number of animals. 
+More precisely, the numerator 
+can be expressed as: 
+• The number of Used 
+Daily Dose Animal (UDDAs). 
+This requires the collection 
+of information on the daily 
+dosage actually used. 
+• The number of Used Course 
+Dose Animal (UCDAs). This 
+requires the collection of 
+information on the dosage 
+actually used for the complete 
+treatment course. 
+• The number of Defined 
+Daily Dose Animal (DDDAs). 
+This requires the definition of 
+DDDAs, which are relevant to 
+the country. More information 
+for their calculation can be 
+found in ESVAC (EMA, 2016).
+
+[2] SOURCE: FSSAI_Contaminant_Compendium_2022 p.53
+55. Doramectin Cattle 
+Muscle 0.01 
+Liver 0.1 
+Kidney 0.03 
+Fat 0.15 
+Milk 0.015 
+Pig Muscle 0.005 
+Liver 0.1 
+Kidney 0.03 Version –VI (27.01.2022) 
  
-Advisory Group on Integrated Surveillance of Antimicrobial 
-Resistance (AGISAR): An advisory group established by the World 
-Health Organization in December of 2008 to support WHO’s efforts to 
-minimize the public health impact of antimicrobial resistance associated 
-with the use of antimicrobials in food animals.  
-Criterion 1 (C1): The antimicrobial class is the sole, or one of limited 
-available therapies, to treat serious bacterial infections in people 
-Criterion 2 (C2): The antimicrobial class is used to treat infections in 
-people caused by either: (1) bacteria that may be transmitted to humans 
-from non-human sources, or (2) bacteria that may acquire resistance genes 
-from non-human sources. 
-Critically important antimicrobials (CIA): Antimicrobial classes used 
-in humans which meet both C1 and C2 are termed critically important for 
-human medicine. 
-Disease Treatment/Therapy/Therapeutic Use: Treatment/Therapeutic 
-Use refers to use of an antimicrobial(s) for the specific purpose of treating 
-an animal(s) with a clinically diagnosed infectious disease or illness 
-(Codex texts on foodborne antimicrobial resistance, 2015). 
-Disease Prevention/Prophylactic Use: Prevention/Prophylactic Use 
-refers to use of an antimicrobial(s) in healthy animals considered to be at 
-risk of infection or prior to the onset of clinical infectious disease. This 
-treatment includes: 
-• 
-control of the dissemination of a clinically diagnosed infectious 
-disease identified within a group of animals, and 
-• 
-prevention of an infectious disease that has not yet been clinically 
-diagnosed. 
-(Codex texts on foodborne antimicrobial resistance, 2015). 
-43
+S. No. 
+Name of the antibiotics and 
+veterinary drugs 
+Food 
+Tolerance limit 
+(mg/Kg) 
+(1) 
+(2) 
+(3) 
+(4) 
+Fat 
+0.15
 
-[2] SOURCE: WHO_AGISAR_2019 p.9
-1. Joint FAO/OIE/WHO expert workshop on non-human antimicrobial usage and antimicrobial resistance: scientific assessment. Food and 
-Agriculture Organization of the United Nations / World Organisation 
-for Animal Health / World Health Organization. 2003. 
-(http://apps.who.int/iris/bitstream/10665/68883/1/WHO_CDS_CPE_
-ZFK_2004.7.pdf?ua=1 , accessed 4 March 2019).
-
-[3] SOURCE: WHO_AGISAR_2019 p.9
-2. Second joint FAO/OIE/WHO expert workshop on non-human antimicrobial usage and antimicrobial resistance: management 
-options. Food and Agriculture Organization of the United Nations / 
-World Organisation for Animal Health / World Health Organization. 
-2004. 
-(http://apps.who.int/iris/bitstream/10665/68701/1/WHO_CDS_CPE_
-ZFK_2004.8.pdf?ua=1, accessed 4 March 2019).
-
-[4] SOURCE: WHO_AGISAR_2019 p.15
-Criterion 2 (C2): The antimicrobial class is used to treat infections in 
-people caused by either: (1) bacteria that may be transmitted to humans 
-from non-human sources, or (2) bacteria that may acquire resistance genes 
-from non-human sources. 
-Explanation: Antimicrobial agents used to treat diseases caused by 
-bacteria that may be transmitted to humans from non-human sources are 
-considered of higher importance because these infections are most 
-amenable to risk management strategies related to non-human use of 
-antimicrobials. The organisms that cause disease need not be drug-resistant 
-at the present time. However, the potential for transmission shows the path 
-for acquisition of resistance now or in the future. The evidence for a link 
-between non-human sources and transmission to humans is greatest for 
-certain bacteria (e.g. non-typhoidal Salmonella spp., Campylobacter spp., 
-Escherichia coli, Enterococcus spp., and Staphylococcus aureus). 
-Commensal organisms from non-human sources (animals, water, food, or 
-the environment) may also transmit resistance determinants to human 
-pathogens; the commensals themselves may also be pathogenic in 
-immunosuppressed hosts. It is important to note that the transmission of 
-such organisms or their genes need not be demonstrated; rather, it is 
-considered sufficient that the potential for such transmission exists.  
-10
-
-[5] SOURCE: WHO_AGISAR_2019 p.47
-Annex 3. Glossary of terms 
-Antibacterial: Refers to antibiotics including semi-synthetic or 
-synthetic substances that kill or inhibit the growth of bacteria.  
+[3] SOURCE: FAO_AMU_Farm_Guidelines p.91
+Regional Guidelines on Monitoring and Surveillance of Antimicrobial Resistance, Use and Residues in Food and Agriculture – Volume 5 76 
  
-Antibiotic: An agent or substance that is produced from 
-microorganisms that can act against another living microorganism. 
-Although not completely technically correct, for purposes of this 
-document the use of the term “antibiotic” should be interpreted as 
-“antibacterial”. 
- 
-Antimicrobial: An agent or substance, derived from any source 
-(microorganisms, plants, animals, synthetic or semisynthetic) that acts 
-against any type of microorganism: bacteria (antibacterial), 
-mycobacteria 
-(antimycobacterial), 
-fungi 
-(antifungal), 
-parasite 
-(antiparasitic), and viruses (antiviral). All antibacterials are 
-antimicrobials, but not all antimicrobials are antibacterials. The scope 
-of this report is limited to the antibacterial antimicrobials.  
- 
-Antimicrobial class: Antimicrobial agents with related molecular 
-structures, often with a similar mode of action because of interaction 
-with a similar target and thus subject to similar mechanisms of 
-resistance. Variations in the properties of antimicrobial agents within a 
-class often arise as a result of the presence of different molecular 
-substitutions, which confer various intrinsic activities or various 
-patterns of pharmacokinetic and pharmacodynamic properties. 
- 
-Antimicrobial resistance (AMR): Antimicrobial resistance happens 
-when microorganisms (such as bacteria, fungi, viruses, and parasites) 
-change when they are exposed to antimicrobial drugs (such as 
-antibiotics, antifungals, antivirals, antimalarials, and anthelmintics). As 
-a result, the medicines become ineffective and infections persist in the 
-body, increasing the risk of spread to others. Also, the ability of 
-microorganism to multiply or persist in the presence of increased level 
-42
+Annex 6 Additional 
+information 
+on the use of 
+Defined Daily 
+Dose Animals 
+and Defined 
+Course Dose  
+Animals 
+Defined Daily Dose Animals (DDDAs) and 
+Defined Course Dose Animals (DCDAs) refer 
+to standardized dosages or doses of AASs 
+based on dosing practices of the veterinary 
+sector observed in the country of analysis. Of 
+note, the DDDAs defined by the ESVAC are 
+called DDDVets and are based on information 
+on doses from nine European Union Member 
+States (EMA, 2016). DDDAs are expressed in 
+mg/kg/day while DCDAs are expressed in 
+mg/kg.
 
 
-QUESTION: what is anti microbial resistance
+QUESTION: What is the recommended dosage for Colistin in Bovine adults?

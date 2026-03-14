@@ -138,8 +138,28 @@ def retrieve(query: str, species_filter: str = None, source_type_filter: str = N
         }
 
     # Build metadata filter
-    where_clause = {}
-    if source_type_filter:
+    # Mapping common names to internal codes
+    SPECIES_MAP = {
+        'POULTRY': 'AVI', 'CHICKEN': 'AVI', 'HEN': 'AVI',
+        'CATTLE': 'BOV', 'COW': 'BOV', 'BOVINE': 'BOV',
+        'SHEEP': 'OVI', 'OVINE': 'OVI',
+        'PIG': 'POR', 'SWINE': 'POR', 'PORCINE': 'POR',
+    }
+    
+    if species_filter:
+        sp = species_filter.upper().strip()
+        sp_code = SPECIES_MAP.get(sp, sp)
+        # Search for requested species OR general documents
+        # Note: ChromaDB $or requires at least 2 conditions
+        where_clause = {
+            "$or": [
+                {"species": {"$eq": sp_code}},
+                {"source_type": {"$eq": source_type_filter if source_type_filter else "regulatory"}} 
+                # Above is a hack because ChromaDB doesn't have a reliable "$exists": False
+                # We assume a general document won't have the species tag
+            ]
+        }
+    elif source_type_filter:
         where_clause['source_type'] = source_type_filter
 
     query_embedding = embedder.encode(query).tolist()
