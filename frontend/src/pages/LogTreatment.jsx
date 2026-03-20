@@ -1,13 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Activity, Beaker, Calendar, ClipboardList, CheckCircle2, AlertCircle, ArrowLeft, ChevronRight, Layers, Tag as TagIcon, Zap } from 'lucide-react';
+import { Activity, Beaker, Calendar, ClipboardList, CheckCircle2, AlertCircle, ArrowLeft, ChevronRight, Layers, Tag as TagIcon } from 'lucide-react';
 import api from '../services/api';
 
 
 const LogTreatment = () => {
   const navigate = useNavigate();
   const [user] = useState(() => JSON.parse(localStorage.getItem('user')));
-  const [darkMode, setDarkMode] = useState(() => {
+  const [darkMode] = useState(() => {
     const saved = localStorage.getItem('operatorTheme');
     return saved ? saved === 'dark' : false;
   });
@@ -35,7 +35,6 @@ const LogTreatment = () => {
     date: new Date().toISOString().split('T')[0],
     safe_harvest_date: ''
   });
-  const [selectedSpecies, setSelectedSpecies] = useState('');
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -47,56 +46,72 @@ const LogTreatment = () => {
       navigate('/login');
       return;
     }
+  }, [navigate, user]);
 
-    const fetchFarms = async () => {
-      try {
-        const data = await api.get('/farms/');
-        setFarms(data);
-        if (data.length > 0 && !formData.farm) {
-          setFormData(prev => ({ ...prev, farm: data[0].id.toString() }));
-        }
-      } catch (err) {
-        console.error('Error fetching farms:', err);
-        setError('Failed to load farms');
-      } finally {
-        setLoading(false);
+  const fetchFarms = useCallback(async () => {
+    try {
+      const data = await api.get('/farms/');
+      setFarms(data);
+      if (data.length > 0 && !formData.farm) {
+        setFormData(prev => ({ ...prev, farm: data[0].id.toString() }));
       }
-    };
-
-    fetchFarms();
-  }, [navigate, user?.email]);
+    } catch (err) {
+      console.error('Error fetching farms:', err);
+      setError('Failed to load farms');
+    } finally {
+      setLoading(false);
+    }
+  }, [formData.farm, setFarms, setFormData, setError, setLoading]);
 
   useEffect(() => {
-    if (formData.farm) {
+    fetchFarms();
+  }, [fetchFarms]);
+
+  const fetchFlocks = useCallback(async () => {
+    if (!formData.farm) {
       setFlocks([]);
       setFormData(prev => ({ ...prev, flock_id: '', animal_id: '' }));
-      api.get(`/flocks/?farm_id=${formData.farm}`)
-        .then(data => {
-          if (Array.isArray(data)) {
-            setFlocks(data);
-          }
-        })
-        .catch(err => console.error('Error fetching flocks:', err));
+      return;
     }
-  }, [formData.farm, user?.email]);
+    try {
+      const data = await api.get(`/flocks/?farm_id=${formData.farm}`);
+      if (Array.isArray(data)) {
+        setFlocks(data);
+      } else {
+        setFlocks([]);
+      }
+    } catch (err) {
+      console.error('Error fetching flocks:', err);
+    }
+  }, [formData.farm, setFlocks, setFormData]);
 
   useEffect(() => {
-    if (formData.flock_id) {
+    fetchFlocks();
+  }, [fetchFlocks]);
+
+  const fetchAnimals = useCallback(async () => {
+    if (!formData.flock_id) {
       setAnimals([]);
       setFormData(prev => ({ ...prev, animal_id: '' }));
-      api.get(`/animals/?flock_id=${formData.flock_id}`)
-        .then(data => {
-          if (Array.isArray(data)) {
-            setAnimals(data);
-          }
-        })
-        .catch(err => console.error('Error fetching animals:', err));
-    } else {
-      setAnimals([]);
+      return;
     }
-  }, [formData.flock_id, user?.email]);
+    try {
+      const data = await api.get(`/animals/?flock_id=${formData.flock_id}`);
+      if (Array.isArray(data)) {
+        setAnimals(data);
+      } else {
+        setAnimals([]);
+      }
+    } catch (err) {
+      console.error('Error fetching animals:', err);
+    }
+  }, [formData.flock_id, setAnimals, setFormData]);
 
   useEffect(() => {
+    fetchAnimals();
+  }, [fetchAnimals]);
+
+  const fetchAntibiotics = useCallback(async () => {
     let species = '';
     if (formData.flock_id) {
       const selectedFlock = flocks.find(f => f.id == formData.flock_id);
@@ -106,7 +121,6 @@ const LogTreatment = () => {
       species = selectedFarm?.species_type || '';
     }
 
-    setSelectedSpecies(species);
 
     if (species) {
       api.get(`/reference/molecules/?species=${species}`)
@@ -123,6 +137,10 @@ const LogTreatment = () => {
     }
   }, [formData.farm, formData.flock_id, farms, flocks]);
 
+  useEffect(() => {
+    fetchAntibiotics();
+  }, [fetchAntibiotics]);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -137,7 +155,9 @@ const LogTreatment = () => {
       ...formData,
       farm: Number(formData.farm),
       flock_id: formData.flock_id ? Number(formData.flock_id) : null,
-      animal_id: formData.animal_id ? Number(formData.animal_id) : null
+      animal_id: formData.animal_id ? Number(formData.animal_id) : null,
+      safe_harvest_date: formData.safe_harvest_date || null,
+      date: formData.date || null
     };
 
     try {

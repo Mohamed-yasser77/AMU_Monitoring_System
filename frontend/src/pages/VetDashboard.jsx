@@ -1,23 +1,19 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import VetSidebar from '../components/vet/Sidebar'
 import api from '../services/api'
 import {
-  LayoutDashboard,
   ClipboardList,
   Pill,
   BookOpen,
   User as UserIcon,
-  LogOut,
   Search,
-  Plus,
   CheckCircle,
   XCircle,
   ChevronRight,
   Info,
   AlertCircle,
   Settings,
-  Activity,
   Edit,
   FileText,
   Droplet,
@@ -91,6 +87,26 @@ function VetDashboard() {
     "Tiruvannamalai", "Tiruvarur", "Vellore", "Viluppuram", "Virudhunagar"
   ]
 
+  const fetchData = useCallback(async () => {
+    try {
+      const [drugsData, treatmentsData, farmsData] = await Promise.all([
+        api.get('/reference/drugs/'),
+        api.get('/treatments/'),
+        api.get('/farms/')
+      ])
+
+      setDrugs(drugsData || [])
+      setPendingTreatments(treatmentsData?.pending || [])
+      setTreatmentHistory(treatmentsData?.history || [])
+      setFarms(farmsData || [])
+
+      setLoading(false)
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error)
+      setLoading(false)
+    }
+  }, [])
+
   useEffect(() => {
     if (!user || user.role !== 'vet') {
       navigate('/login')
@@ -101,32 +117,12 @@ function VetDashboard() {
       setProfileCompleted(true)
     }
 
-    const fetchData = async () => {
-      try {
-        const [drugsData, treatmentsData, farmsData] = await Promise.all([
-          api.get('/reference/drugs/'),
-          api.get('/treatments/'),
-          api.get('/farms/')
-        ])
-
-        setDrugs(drugsData || [])
-        setPendingTreatments(treatmentsData?.pending || [])
-        setTreatmentHistory(treatmentsData?.history || [])
-        setFarms(farmsData || [])
-
-        setLoading(false)
-      } catch (error) {
-        console.error('Error fetching dashboard data:', error)
-        setLoading(false)
-      }
-    }
-
     fetchData()
 
     // Auto-refresh data every 30 seconds for real-time request tracking
     const interval = setInterval(fetchData, 30000)
     return () => clearInterval(interval)
-  }, [navigate, user?.email])
+  }, [navigate, user, fetchData])
 
   // Fetch flocks when farm is selected in prescription form
   useEffect(() => {

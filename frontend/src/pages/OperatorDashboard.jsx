@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/operator/Sidebar';
 import SearchableTable from '../components/operator/SearchableTable';
 import FarmForm from '../components/operator/FarmForm';
 import FlockForm from '../components/operator/FlockForm';
-import { Plus, LayoutGrid, Activity, Home, Users, ChevronRight, TrendingUp, Search, Settings, AlertCircle, CheckCircle, Layers, FileText, XCircle, Bell } from 'lucide-react';
+import { Plus, Activity, Home, ChevronRight, TrendingUp, Search, AlertCircle, CheckCircle, FileText, XCircle, Bell, Settings } from 'lucide-react';
 import api from '../services/api';
 
 const speciesMapping = {
@@ -40,7 +40,6 @@ const OperatorDashboard = () => {
     const [flocks, setFlocks] = useState([]);
     const [treatments, setTreatments] = useState([]);
     const [vetDirectives, setVetDirectives] = useState([]);
-    const [problems, setProblems] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showFarmForm, setShowFarmForm] = useState(false);
     const [showFlockForm, setShowFlockForm] = useState(false);
@@ -52,16 +51,15 @@ const OperatorDashboard = () => {
     const navigate = useNavigate();
     const user = JSON.parse(localStorage.getItem('user'));
 
-    const fetchData = async () => {
+    const fetchData = useCallback(async () => {
         if (!user) return;
         setLoading(true);
         try {
-            const [ownersData, farmsData, flocksData, treatmentsData, problemsData] = await Promise.all([
+            const [ownersData, farmsData, flocksData, treatmentsData] = await Promise.all([
                 api.get('/owners/'),
                 api.get('/farms/'),
                 api.get('/flocks/'),
-                api.get('/treatments/'),
-                api.get('/problems/')
+                api.get('/treatments/')
             ]);
 
             setOwners(ownersData || []);
@@ -75,13 +73,12 @@ const OperatorDashboard = () => {
 
             setTreatments(operatorLogs);
             setVetDirectives(vetLogs);
-            setProblems(problemsData || []);
         } catch (err) {
             console.error('Fetch error:', err);
         } finally {
             setLoading(false);
         }
-    };
+    }, [user]);
 
     useEffect(() => {
         if (!user) { navigate('/login'); return; }
@@ -92,7 +89,7 @@ const OperatorDashboard = () => {
         // Auto-refresh data every 30 seconds to update safety status in real-time
         const interval = setInterval(fetchData, 30000);
         return () => clearInterval(interval);
-    }, [user?.email]);
+    }, [user, user?.role, navigate, fetchData]);
 
     const handleLogout = () => {
         localStorage.removeItem('user');

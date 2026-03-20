@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom'
 import heroFarm from '../assets/hero_farm.png'
 import labSamples from '../assets/lab_samples.png'
 import bacteriaAbstract from '../assets/bacteria_abstract.png'
-import livestock from '../assets/livestock.png'
 import dashboardMockup from '../assets/dashboard_mockup.png'
 
 function Landing() {
@@ -300,8 +299,8 @@ function Landing() {
                   </div>
 
                   <div className="flex gap-6 items-start group reveal" style={{ transitionDelay: '400ms' }}>
-                    <div className="w-14 h-14 shrink-0 rounded-none bg-[#1c2025] border border-white/5 shadow-md flex items-center justify-center group-hover:bg-primary-600 group-hover:scale-110 transition-all duration-500">
-                      <svg className="w-8 h-8 text-primary-600 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className="w-14 h-14 shrink-0 rounded-none bg-[#1c2025] border border-white/5 shadow-md flex items-center justify-center group-hover:bg-teal-accent group-hover:scale-110 transition-all duration-500">
+                      <svg className="w-8 h-8 text-teal-accent group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
                       </svg>
                     </div>
@@ -339,8 +338,8 @@ function Landing() {
                   <img src={dashboardMockup} alt="Software Dashboard Mockup" className="rounded-none" />
                 </div>
                 {/* Decorative blobs */}
-                <div className="absolute -top-10 -right-10 w-40 h-40 bg-primary-200/50 rounded-full blur-3xl -z-10"></div>
-                <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-indigo-200/50 rounded-full blur-3xl -z-10"></div>
+                <div className="absolute -top-10 -right-10 w-40 h-40 bg-teal-accent/20 rounded-full blur-3xl -z-10"></div>
+                <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-teal-500/10 rounded-full blur-3xl -z-10"></div>
               </div>
             </div>
           </div>
@@ -436,30 +435,34 @@ function Landing() {
             <div className="grid lg:grid-cols-2 gap-12">
               <div className="bg-[#1c2025] p-10 rounded-none border border-slate-800 shadow-xl">
                 <p className="text-slate-300 italic mb-10 text-lg leading-relaxed">
-                  "The AMU Monitoring System transformed our clinical oversight. We can now visualize resistance trends across our entire client base in real-time, allowing for much more precise stewardship."
+                  &quot;The AMU Monitoring System transformed our clinical oversight. We can now visualize resistance trends across our entire client base in real-time, allowing for much more precise stewardship.&quot;
                 </p>
                 <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 rounded-none bg-slate-700 overflow-hidden ring-2 ring-teal-500/30">
-                    <img src="https://images.unsplash.com/photo-1559839734-2b71f1536783?auto=format&fit=crop&q=80&w=150&h=150" alt="Dr. Evelyn Reed" className="w-full h-full object-cover" />
+                  <div className="w-14 h-14 rounded-none bg-teal-500/10 flex items-center justify-center ring-2 ring-teal-500/30">
+                    <svg className="w-8 h-8 text-teal-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+                    </svg>
                   </div>
                   <div>
-                    <h5 className="font-bold text-teal-accent">Dr. Sarah Johnson</h5>
-                    <p className="text-teal-accent text-xs font-semibold uppercase">Senior Veterinarian, Swine Ops</p>
+                    <h5 className="font-bold text-teal-accent">Senior Veterinarian</h5>
+                    <p className="text-teal-accent text-[9px] font-black uppercase tracking-widest opacity-80">Swine Healthcare Operations</p>
                   </div>
                 </div>
               </div>
 
               <div className="bg-[#1c2025] p-10 rounded-none border border-slate-800 shadow-xl">
                 <p className="text-slate-300 italic mb-10 text-lg leading-relaxed">
-                  "Compliance reporting used to take us days. Now it's a matter of minutes. The platform has significantly reduced our manual data entry errors and improved our audit readiness."
+                  &quot;Compliance reporting used to take us days. Now it&apos;s a matter of minutes. The platform has significantly reduced our manual data entry errors and improved our audit readiness.&quot;
                 </p>
                 <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 rounded-none bg-slate-700 overflow-hidden ring-2 ring-teal-500/30">
-                    <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=150&h=150" alt="Ben Carter" className="w-full h-full object-cover" />
+                  <div className="w-14 h-14 rounded-none bg-teal-500/10 flex items-center justify-center ring-2 ring-teal-500/30">
+                    <svg className="w-8 h-8 text-teal-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+                    </svg>
                   </div>
-                  <div>
-                    <h5 className="font-bold text-teal-accent">Liam O'Sullivan</h5>
-                    <p className="text-teal-accent text-xs font-semibold uppercase">Commercial Farm Director</p>
+                   <div>
+                    <h5 className="font-bold text-teal-accent">Commercial Farm Director</h5>
+                    <p className="text-teal-accent text-[9px] font-black uppercase tracking-widest opacity-80">Large Scale Production Group</p>
                   </div>
                 </div>
               </div>

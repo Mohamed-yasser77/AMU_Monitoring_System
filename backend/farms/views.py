@@ -14,6 +14,7 @@ from datetime import timedelta, date
 from amu_monitoring.utils import login_required_json
 
 
+@method_decorator(csrf_exempt, name='dispatch')
 @method_decorator(login_required_json, name='dispatch')
 class FarmListCreateView(View):
     def get(self, request):
@@ -72,6 +73,7 @@ class FarmListCreateView(View):
             return JsonResponse({'error': str(e)}, status=400)
 
 
+@method_decorator(csrf_exempt, name='dispatch')
 @method_decorator(login_required_json, name='dispatch')
 class FarmDetailView(View):
     def get(self, request, farm_id):
@@ -134,6 +136,7 @@ class FarmDetailView(View):
             return JsonResponse({'error': str(e)}, status=400)
 
 
+@method_decorator(csrf_exempt, name='dispatch')
 @method_decorator(login_required_json, name='dispatch')
 class OwnerListCreateView(View):
     def get(self, request):
@@ -189,6 +192,7 @@ class OwnerListCreateView(View):
             return JsonResponse({'error': str(e)}, status=400)
 
 
+@method_decorator(csrf_exempt, name='dispatch')
 @method_decorator(login_required_json, name='dispatch')
 class OwnerDetailView(View):
     def get(self, request, owner_id):
@@ -281,6 +285,7 @@ class OwnerDetailView(View):
             return JsonResponse({'error': str(e)}, status=400)
 
 
+@method_decorator(csrf_exempt, name='dispatch')
 @method_decorator(login_required_json, name='dispatch')
 class FlockListCreateView(View):
     def get(self, request):
@@ -417,6 +422,7 @@ class FlockListCreateView(View):
             return JsonResponse({'error': str(e)}, status=400)
 
 
+@method_decorator(csrf_exempt, name='dispatch')
 @method_decorator(login_required_json, name='dispatch')
 class AnimalListCreateView(View):
     def get(self, request):
@@ -479,6 +485,7 @@ class AnimalListCreateView(View):
             return JsonResponse({'error': str(e)}, status=400)
 
 
+@method_decorator(csrf_exempt, name='dispatch')
 @method_decorator(login_required_json, name='dispatch')
 class ProblemListCreateView(View):
     def get(self, request):
@@ -572,6 +579,7 @@ class ProblemListCreateView(View):
             return JsonResponse({'error': str(e)}, status=400)
 
 
+@method_decorator(csrf_exempt, name='dispatch')
 @method_decorator(login_required_json, name='dispatch')
 class BulkFlockCreateView(View):
     """

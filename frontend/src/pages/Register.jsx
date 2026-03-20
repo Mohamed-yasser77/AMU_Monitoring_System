@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { User, Mail, Lock, UserCheck, Shield, ChevronRight, XCircle, CheckCircle, ArrowLeft } from 'lucide-react'
+import { User, Mail, Lock, UserCheck, ChevronRight, XCircle, CheckCircle, ArrowLeft } from 'lucide-react'
 import api from '../services/api'
 
 function Register() {
@@ -37,7 +37,7 @@ function Register() {
     if (!formData.lastName.trim()) newErrors.lastName = 'Last name is required'
     if (!formData.email) {
       newErrors.email = 'Email is required'
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+    } else if (!/\S+@\S+\.\S/.test(formData.email)) {
       newErrors.email = 'Email is invalid'
     }
     if (!formData.password) {
@@ -231,7 +231,7 @@ function Register() {
 
             <div className="mt-8 pt-6 border-t border-white/5 text-center">
               <p className="text-slate-400 text-sm">
-                Already have an account?{' '}
+                        Already have an account?{' '}
                 <Link to="/login" className="text-teal-accent font-bold hover:text-white transition-colors">
                   Sign In
                 </Link>

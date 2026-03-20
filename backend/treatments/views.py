@@ -10,6 +10,7 @@ from amu_monitoring.users.models import User
 from django.db.models import Count, Q
 from amu_monitoring.utils import login_required_json
 
+@method_decorator(csrf_exempt, name='dispatch')
 @method_decorator(login_required_json, name='dispatch')
 class TreatmentListCreateView(View):
     def get(self, request):
@@ -140,6 +141,13 @@ class TreatmentListCreateView(View):
                         assigned_vet = vet
                         break
             
+            # Clean and validate dates
+            date_val = data.get('date')
+            if date_val == "": date_val = None
+            
+            safe_harvest_val = data.get('safe_harvest_date')
+            if safe_harvest_val == "": safe_harvest_val = None
+
             treatment = Treatment.objects.create(
                 farm=farm,
                 flock=flock,
@@ -153,8 +161,8 @@ class TreatmentListCreateView(View):
                 vet_notes=data.get('vet_notes'),
                 reason=data.get('reason'),
                 treated_for=data.get('treated_for'),
-                date=data.get('date'),
-                safe_harvest_date=data.get('safe_harvest_date')
+                date=date_val,
+                safe_harvest_date=safe_harvest_val
             )
             
             return JsonResponse({
@@ -165,9 +173,12 @@ class TreatmentListCreateView(View):
             }, status=201)
 
         except Exception as e:
-            return JsonResponse({'error': 'Unexpected error processing treatment log.'}, status=500)
+            import traceback
+            print(traceback.format_exc())
+            return JsonResponse({'error': f'Unexpected error: {str(e)}'}, status=500)
 
 
+@method_decorator(csrf_exempt, name='dispatch')
 @method_decorator(login_required_json, name='dispatch')
 class TreatmentActionView(View):
     def post(self, request, treatment_id):
@@ -210,6 +221,7 @@ class TreatmentActionView(View):
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=500)
 
+@method_decorator(csrf_exempt, name='dispatch')
 @method_decorator(login_required_json, name='dispatch')
 class PrescriptionCreateView(View):
     def post(self, request):
