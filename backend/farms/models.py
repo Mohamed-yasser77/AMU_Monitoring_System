@@ -105,22 +105,22 @@ class Flock(models.Model):
         from reference_data.models import MRLLimit
         from datetime import date, timedelta
         
-        # Get all approved treatments for this flock
-        approved_treatments = Treatment.objects.filter(
-            flock=self, 
+        # Get all approved treatments (Operator logs approved by Vet OR direct Vet prescriptions)
+        treatments = Treatment.objects.filter(
+            flock=self,
             status='approved'
         )
 
         max_safe_date = None
-        is_under_withdrawal = False
         today = date.today()
 
-        for treatment in approved_treatments:
+        for treatment in treatments:
             if not self.species_type:
                 continue
                 
+            # Case-insensitive molecule search
             mrls = MRLLimit.objects.filter(
-                molecule__name=treatment.antibiotic_name,
+                molecule__name__iexact=treatment.antibiotic_name,
                 species_group__code=self.species_type
             )
             
@@ -129,26 +129,30 @@ class Flock(models.Model):
                 days_list = [mrl.withdrawal_days for mrl in mrls if mrl.withdrawal_days is not None]
                 if days_list:
                     max_days = max(days_list)
-            
-            # Prioritize the explicitly stored safe_harvest_date if available
-            if hasattr(treatment, 'safe_harvest_date') and treatment.safe_harvest_date:
-                treatment_safe_date = treatment.safe_harvest_date
-            elif max_days > 0:
-                # Safe date = date treatment was administered + withdrawal days
-                treatment_safe_date = treatment.date + timedelta(days=max_days)
             else:
-                continue
+                # CONSERVATIVE DEFAULT: 28 days if molecule data is missing
+                max_days = 28
+            
+            # Prioritize explicitly stored safe_harvest_date; fallback to calculation
+            treatment_safe_date = getattr(treatment, 'safe_harvest_date', None) or (treatment.date + timedelta(days=max_days))
                 
             if max_safe_date is None or treatment_safe_date > max_safe_date:
                 max_safe_date = treatment_safe_date
         
-        # Boundary Fix: If today IS the safe date, it should be CLEARED (today < safe_date)
-        if max_safe_date and today < max_safe_date:
-            is_under_withdrawal = True
+        is_under_withdrawal = False
+        days_remaining = 0
+        
+        if max_safe_date:
+            days_remaining = (max_safe_date - today).days
+            if days_remaining > 0:
+                is_under_withdrawal = True
+            else:
+                days_remaining = 0 # No negative days
             
         return {
             'safe_harvest_date': max_safe_date.isoformat() if max_safe_date else None,
-            'is_under_withdrawal': is_under_withdrawal
+            'is_under_withdrawal': is_under_withdrawal,
+            'days_remaining': days_remaining
         }
 
 
@@ -167,6 +171,79 @@ class Animal(models.Model):
 
     def __str__(self):
         return f"{self.animal_tag} ({self.flock.flock_tag})"
+
+    @property
+    def age_in_weeks(self):
+        """
+        Calculates the current age in weeks dynamically based on date_of_birth.
+        Falls back to flock's age if missing.
+        """
+        if not self.date_of_birth:
+            return self.flock.age_in_weeks if self.flock else 0
+            
+        from datetime import date
+        today = date.today()
+        delta = today - self.date_of_birth
+        return max(0, delta.days // 7)
+
+    @property
+    def withdrawal_status(self):
+        """
+        Calculates safety status for an individual animal.
+        This provides isolation: treating one animal does not flag the whole flock.
+        """
+        from treatments.models import Treatment
+        from reference_data.models import MRLLimit
+        from datetime import date, timedelta
+        
+        # Get all approved treatments for this individual animal
+        treatments = Treatment.objects.filter(
+            animal=self, 
+            status='approved'
+        )
+
+        max_safe_date = None
+        today = date.today()
+
+        for treatment in treatments:
+            species_group = self.flock.species_type if self.flock else "MIX"
+            
+            # Case-insensitive molecule search
+            mrls = MRLLimit.objects.filter(
+                molecule__name__iexact=treatment.antibiotic_name,
+                species_group__code=species_group
+            )
+            
+            max_days = 0
+            if mrls.exists():
+                days_list = [mrl.withdrawal_days for mrl in mrls if mrl.withdrawal_days is not None]
+                if days_list:
+                    max_days = max(days_list)
+            else:
+                # CONSERVATIVE DEFAULT: 28 days if molecule data is missing
+                max_days = 28
+            
+            # Prioritize explicitly stored safe_harvest_date; fallback to calculation
+            treatment_safe_date = getattr(treatment, 'safe_harvest_date', None) or (treatment.date + timedelta(days=max_days))
+                
+            if max_safe_date is None or treatment_safe_date > max_safe_date:
+                max_safe_date = treatment_safe_date
+        
+        is_under_withdrawal = False
+        days_remaining = 0
+        
+        if max_safe_date:
+            days_remaining = (max_safe_date - today).days
+            if days_remaining > 0:
+                is_under_withdrawal = True
+            else:
+                days_remaining = 0 # No negative days
+            
+        return {
+            'safe_harvest_date': max_safe_date.isoformat() if max_safe_date else None,
+            'is_under_withdrawal': is_under_withdrawal,
+            'days_remaining': days_remaining
+        }
 
 
 class Problem(models.Model):

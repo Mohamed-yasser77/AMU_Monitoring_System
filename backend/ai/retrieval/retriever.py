@@ -20,7 +20,7 @@ EMBEDDING_MODEL = 'all-MiniLM-L6-v2'
 WITHDRAWAL_CSV = os.path.join(BASE_DIR, '..', 'Documentation and data', 'molecule_withdrawal_periods.csv')
 MRL_CSV = os.path.join(BASE_DIR, '..', 'Documentation and data', 'mrl_limit.csv')
 
-CONFIDENCE_THRESHOLD = 0.72  # below this → flag response for review
+CONFIDENCE_THRESHOLD = 0.65  # lower for MiniLM to increase recall
 
 # Lazy-loaded singletons (avoid reloading on every request)
 _embedder = None
@@ -146,27 +146,49 @@ def retrieve(query: str, species_filter: str = None, source_type_filter: str = N
         'PIG': 'POR', 'SWINE': 'POR', 'PORCINE': 'POR',
     }
     
+    KNOWN_MOLECULES = [
+        'colistin', 'oxytetracycline', 'tetracycline', 'amoxicillin',
+        'ampicillin', 'enrofloxacin', 'ciprofloxacin', 'tylosin',
+        'lincomycin', 'streptomycin', 'neomycin', 'chloramphenicol',
+        'florfenicol', 'tilmicosin', 'erythromycin', 'doxycycline',
+        'sulfamethoxazole', 'trimethoprim', 'ceftiofur', 'penicillin',
+    ]
+    
+    where_clause = {}
+    
+    # Detected molecule in query for boosting
+    query_lower = query.lower()
+    target_molecule = next((m for m in KNOWN_MOLECULES if m in query_lower), None)
+
     if species_filter:
         sp = species_filter.upper().strip()
         sp_code = SPECIES_MAP.get(sp, sp)
-        # Search for requested species OR general documents
-        # Note: ChromaDB $or requires at least 2 conditions
+        # Search for requested species OU regulatory global documents
+        conditions = [
+            {"source_type": {"$eq": source_type_filter if source_type_filter else "regulatory"}}
+        ]
+        # If we have a molecule, prioritize it in the filter if possible
+        if target_molecule:
+             # ChromaDB doesn't do complex nested bools well in free version, 
+             # so we broaden and then re-rank below.
+             pass
+
         where_clause = {
             "$or": [
                 {"species": {"$eq": sp_code}},
-                {"source_type": {"$eq": source_type_filter if source_type_filter else "regulatory"}} 
-                # Above is a hack because ChromaDB doesn't have a reliable "$exists": False
-                # We assume a general document won't have the species tag
+                {"source_type": {"$eq": "regulatory"}} # includes global docs
             ]
         }
     elif source_type_filter:
-        where_clause['source_type'] = source_type_filter
+        where_clause = {'source_type': source_type_filter}
+    else:
+        where_clause = None
 
     query_embedding = embedder.encode(query).tolist()
 
     query_kwargs = {
         'query_embeddings': [query_embedding],
-        'n_results': min(top_k, collection.count()),
+        'n_results': min(20, collection.count()),
         'include': ['documents', 'metadatas', 'distances'],
     }
     if where_clause:
@@ -199,8 +221,19 @@ def retrieve(query: str, species_filter: str = None, source_type_filter: str = N
             'source_label': source_label,
         })
 
-    # Sort by similarity descending (ChromaDB returns sorted, but be explicit)
+    # Hybrid Boost: Increase similarity score if molecule name is in text/metadata
+    if target_molecule:
+        for chunk in chunks:
+            text_match = target_molecule in chunk['text'].lower()
+            meta_match = target_molecule in chunk['metadata'].get('molecule', '').lower()
+            if text_match or meta_match:
+                # Boost chunks containing the actual molecule name
+                chunk['similarity'] += 0.1
+                chunk['source_label'] += " ⭐" # visual indicator of keyword match
+
+    # Re-sort and take top_k
     chunks.sort(key=lambda x: x['similarity'], reverse=True)
+    chunks = chunks[:top_k]
 
     return {
         'chunks': chunks,

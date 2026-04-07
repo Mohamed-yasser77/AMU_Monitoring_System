@@ -3,15 +3,20 @@ from django.http import JsonResponse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.forms.models import model_to_dict
-from django.db.models import Q
+from django.db.models import Q, Sum, Count
 from django.db import transaction
-from .models import Farm, Owner, Flock, Animal, Problem
+from .models import Farm, Owner, Flock, Animal, Problem, SPECIES_CHOICES
 from treatments.models import Treatment
 from reference_data.models import MRLLimit
 import json
 from amu_monitoring.users.models import User
 from datetime import timedelta, date
 from amu_monitoring.utils import login_required_json
+from django.template.loader import render_to_string
+from django.http import HttpResponse
+from xhtml2pdf import pisa
+from openai import OpenAI
+import os
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -218,6 +223,7 @@ class OwnerDetailView(View):
                         'id': animal.id,
                         'animal_tag': animal.animal_tag,
                         'date_of_birth': animal.date_of_birth.isoformat() if animal.date_of_birth else None,
+                        'age_in_weeks': animal.age_in_weeks,
                         'sex': animal.sex,
                     })
                 
@@ -399,6 +405,7 @@ class FlockListCreateView(View):
                     Animal(
                         flock=flock,
                         animal_tag=f"{flock_tag}-{i:03d}",
+                        date_of_birth=dob,
                     )
                     for i in range(1, count + 1)
                 ]
@@ -448,6 +455,7 @@ class AnimalListCreateView(View):
                         'flock_id': animal.flock_id,
                         'animal_tag': animal.animal_tag,
                         'date_of_birth': animal.date_of_birth.isoformat() if animal.date_of_birth else None,
+                        'age_in_weeks': animal.age_in_weeks,
                         'sex': animal.sex,
                     }
                 )
@@ -722,3 +730,146 @@ class BulkFlockCreateView(View):
             return JsonResponse(data, safe=False, status=200)
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=500)
+@method_decorator(csrf_exempt, name='dispatch')
+@method_decorator(login_required_json, name='dispatch')
+class OperatorReportView(View):
+    """
+    Generates a professional PDF report for the Data Operator.
+    Includes AI-generated clinical insights based on recent farm activity.
+    """
+    def get(self, request):
+        user = request.user
+        today = date.today()
+        last_30_days = today - timedelta(days=30)
+
+        # 1. Aggregate Statistics
+        farms = Farm.objects.filter(user=user)
+        total_farms = farms.count()
+        
+        # Total Animals across all flocks
+        livestock_stats = Flock.objects.filter(farm__user=user).aggregate(total=Sum('size'))
+        total_animals = livestock_stats['total'] or 0
+        
+        # Species Breakdown
+        species_counts = Flock.objects.filter(farm__user=user).values('species_type').annotate(count=Count('id')).order_by('-count')
+        # Map codes to human readable names from choices
+        species_display_map = dict(SPECIES_CHOICES)
+        species_distribution = []
+        for item in species_counts:
+            species_distribution.append({
+                'name': species_display_map.get(item['species_type'], item['species_type']),
+                'count': item['count']
+            })
+
+        recent_treatments = Treatment.objects.filter(farm__user=user, date__gte=last_30_days)
+        active_treatments_count = recent_treatments.count()
+        
+        approved_count = recent_treatments.filter(status='approved').count()
+        compliance_rate = round((approved_count / active_treatments_count * 100), 1) if active_treatments_count > 0 else 100
+
+        # Top Antibiotics Used
+        top_drugs = recent_treatments.values('antibiotic_name').annotate(count=Count('id')).order_by('-count')[:3]
+
+        # 2. Find flocks or individual animals under withdrawal
+        quarantine_alerts = []
+        
+        # Check Flocks
+        flocks = Flock.objects.filter(farm__user=user)
+        for f in flocks:
+            status = f.withdrawal_status
+            if status['is_under_withdrawal']:
+                quarantine_alerts.append({
+                    'type': 'FLOCK',
+                    'tag': f.flock_tag,
+                    'species': f.get_species_type_display(),
+                    'age': f.age_in_weeks,
+                    'days_left': status['days_remaining'],
+                    'safe_date': status['safe_harvest_date'],
+                    'molecule': Treatment.objects.filter(flock=f).order_by('-date').first().antibiotic_name if Treatment.objects.filter(flock=f).exists() else "N/A"
+                })
+        
+        # Check Individual Animals
+        animals = Animal.objects.filter(flock__farm__user=user)
+        for a in animals:
+            status = a.withdrawal_status
+            if status['is_under_withdrawal']:
+                quarantine_alerts.append({
+                    'type': 'ANIMAL',
+                    'tag': a.animal_tag,
+                    'species': a.flock.get_species_type_display() if a.flock else "N/A",
+                    'age': a.age_in_weeks,
+                    'days_left': status['days_remaining'],
+                    'safe_date': status['safe_harvest_date'],
+                    'molecule': Treatment.objects.filter(animal=a).order_by('-date').first().antibiotic_name if Treatment.objects.filter(animal=a).exists() else "N/A"
+                })
+
+        # 3. Prepare data for Detailed Activity Log (Last 10)
+        recent_log = []
+        for t in recent_treatments.order_by('-date')[:10]:
+            recent_log.append({
+                'date': t.date.strftime("%Y-%m-%d"),
+                'target': t.animal.animal_tag if t.animal else (t.flock.flock_tag if t.flock else t.farm.name),
+                'drug': t.antibiotic_name,
+                'dosage': t.dosage or "N/A",
+                'reason': t.get_treated_for_display(),
+                'status': t.status
+            })
+
+        # 4. Generate AI Summary (Insights)
+        ai_insight = "No significant trends detected in the recent reporting period."
+        try:
+            client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
+            
+            # Construct a data-dense prompt for the AI
+            stats_context = f"""
+            Operator: {user.first_name} {user.last_name}
+            Period: Last 30 Days
+            Supervision: {total_animals} animals across {total_farms} farms.
+            Species Mix: {', '.join([f"{s['name']}: {s['count']} flocks" for s in species_distribution])}
+            Activity: {active_treatments_count} treatments recorded.
+            Top Drugs: {', '.join([d['antibiotic_name'] for d in top_drugs])}
+            Compliance Rate: {compliance_rate}%
+            Safety Alerts: {len(quarantine_alerts)} cohorts/animals currently restricted.
+            """
+            
+            response = client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {"role": "system", "content": "You are a professional Veterinary Health Analyst. Provide a concise, 3-sentence high-level strategic insight for this AMU monitoring report. Focus on antimicrobial stewardship, individual animal vs flock risk, and safety. Do not use markdown or bolding."},
+                    {"role": "user", "content": f"Analyze these stats for the operator report: {stats_context}"}
+                ],
+                max_tokens=150,
+                temperature=0.7
+            )
+            ai_insight = response.choices[0].message.content.strip()
+        except Exception as ai_err:
+            print(f"AI Report Error: {ai_err}")
+            ai_insight = "Intelligence engine currently unavailable. Please review raw statistics for trend analysis."
+
+        # 5. Render HTML to PDF
+        context = {
+            'report_date': today.strftime("%B %d, %Y"),
+            'operator_name': f"{user.first_name} {user.last_name}",
+            'ai_summary': ai_insight,
+            'total_farms': total_farms,
+            'total_animals': total_animals,
+            'active_treatments': active_treatments_count,
+            'compliance_rate': compliance_rate,
+            'quarantine_count': len(quarantine_alerts),
+            'species_distribution': species_distribution,
+            'top_drugs': top_drugs,
+            'recent_log': recent_log,
+            'safety_alerts': quarantine_alerts[:10], # Show top 10 alerts
+        }
+        
+        html_string = render_to_string('reports/operator_summary.html', context)
+        
+        response = HttpResponse(content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="AMU_Report_{today.strftime("%Y%m%d")}.pdf"'
+        
+        pisa_status = pisa.CreatePDF(html_string, dest=response)
+        
+        if pisa_status.err:
+            return JsonResponse({'error': 'PDF Generation failed'}, status=500)
+            
+        return response

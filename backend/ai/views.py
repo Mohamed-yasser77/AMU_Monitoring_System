@@ -24,7 +24,7 @@ from amu_monitoring.utils import login_required_json
 
 RATE_LIMIT_PER_DAY = getattr(settings, 'AI_RATE_LIMIT_PER_DAY', 20)
 CONFIDENCE_THRESHOLD = 0.72
-GEMINI_MODEL = getattr(settings, 'GEMINI_MODEL', 'gemini-2.5-flash')
+OPENAI_MODEL = getattr(settings, 'OPENAI_MODEL', 'gpt-4o-mini')
 
 
 def _check_rate_limit(user) -> bool:
@@ -161,7 +161,7 @@ class RegulatoryQueryView(View):
             source_citation=result['source'],
             flagged_for_review=result['flagged_for_review'],
             retrieved_chunk_ids=[c['metadata'].get('chunk_id', '') for c in retrieval['chunks']],
-            model_version=GEMINI_MODEL,
+            model_version=OPENAI_MODEL,
         )
 
         # Cache successful, non-flagged responses

@@ -5,109 +5,151 @@ RULES:
 1. ONLY USE THE PROVIDED CONTEXT. If the answer is not in the context, clearly state what information is missing.
 2. EXACT QUOTES: For every claim you make, you MUST provide the exact sentence(s) from the context that supports it. These must be VERBATIM.
 3. BE HELPFUL WITH TERMINOLOGY: Explain distinctions (e.g., "very highly important" vs "Highest Priority Critically Important").
-4. NO HALLUCINATION: If no relevant information exists, state that clearly in the answer.
-5. OUTPUT: Provide structured JSON matching the requested schema.
+4. KEYWORD MATCHES: Some chunks may be marked with "⭐". These chunks contain exact keyword matches for your query—pay special attention to them.
+5. NO HALLUCINATION: If no relevant information exists, state that clearly in the answer.
+6. OUTPUT: Provide structured JSON matching the requested schema.
 
 
 USER MESSAGE:
 CONTEXT:
-[1] SOURCE: FAO_AMU_Farm_Guidelines p.73
-Regional Guidelines on Monitoring and Surveillance of Antimicrobial Resistance, Use and Residues in Food and Agriculture – Volume 5 58 
-Scenario A – use of the pre-slaughter weight: AMU is monitored for a whole year in a swine farm. In this country, the average national pre-slaughter 
-weight is known to be 105 kg. We don’t know the dates of treatment and to what types of animals the 
-antimicrobials were administered. However, we know that the farm sends 500 pigs to the 
-slaughterhouse per year on average and that it used 2 200 000 mg of AAS during the year of study. 
-Using the pre-slaughter weight, the farm has used 2 200 000/(500 × 105) = 42 mg/kg. 
-Scenario B – use of the weight at treatment or weight per production stage: 
-In the same country, another pig farmer treated: 
-•10 piglets (out of 90 piglets) for 5 days with 0.25 ml/day of a veterinary product containing enrofloxacin 
-(100mg/ml) by injection. 
-•16 fattening pigs (out of 95 fattening pigs) for 3 days with 4 ml/day with a veterinary product containing 
-tylosin (200 mg/ml). 
-The average weight of a piglet is considered to be 15 kg and the average weight of a fattening pig is 75 kg. 
-At the time of treatment, piglets were 10 kg and fattening pigs were 80 kg. 
-Calculation of the numerator: 
-Weight of enrofloxacin: 10 × 5 × 0.25 × 100 = 1 250 mg 
-Weight of tylosin: 16 × 3 × 4 × 200 = 38 400 mg 
-Calculation of the weight-based indicators: 
-•Using the average animal weight per production stage 
- = 6.32 mg/kg 
-•Using the actual animal weight at each treatment 
- = 6.44 mg/kg 
-iv. Calculating dosed-based 
-indicators 
-The numerator consists of a 
-number of doses while the 
-denominator is usually 
-expressed in terms of animal 
-biomass or number of animals. 
-More precisely, the numerator 
-can be expressed as: 
-• The number of Used 
-Daily Dose Animal (UDDAs). 
-This requires the collection 
-of information on the daily 
-dosage actually used. 
-• The number of Used Course 
-Dose Animal (UCDAs). This 
-requires the collection of 
-information on the dosage 
-actually used for the complete 
-treatment course. 
-• The number of Defined 
-Daily Dose Animal (DDDAs). 
-This requires the definition of 
-DDDAs, which are relevant to 
-the country. More information 
-for their calculation can be 
-found in ESVAC (EMA, 2016).
-
-[2] SOURCE: FSSAI_Contaminant_Compendium_2022 p.53
-55. Doramectin Cattle 
-Muscle 0.01 
-Liver 0.1 
-Kidney 0.03 
-Fat 0.15 
-Milk 0.015 
-Pig Muscle 0.005 
-Liver 0.1 
-Kidney 0.03 Version –VI (27.01.2022) 
+[1] SOURCE: FAO_AMU_Farm_Guidelines p.92 ⭐
+A DDDA (or a DCDA) is assigned for an animal 
+species, approved AAS or combination of 
+AAS and route of administration (e.g. 
+injectable amoxicillin and oral amoxicillin will 
+be considered separately) and consists of the 
+assumed average daily dose (or full  
+treatment dose for a DCDA) considering all 
+products containing this AAS, for their main 
+indications (prevention and treatment only, 
+growth promotion excluded). If an AAS can 
+be used by different routes of administration, 
+the AAS is assigned different DDDAs (one per 
+route). DDDAs depend on product 
+characteristics and approved dosing 
+requirement, which may vary substantially 
+between countries (Postma et al., 2015). 
+Therefore, very different DDDAs can be used 
+by different countries (AACTING Network, 
+2018; Sanders et al., 2020), as illustrated in 
+Table A6.1. These values could also change 
+over time when new products are approved 
+or withdrawn from the market or when 
+summaries of product characteristics  have 
+changed. 
+Table A6.1 DDDAs in mg/kg/day used for selected antimicrobial active substances administered orally in 
+chickens 
  
-S. No. 
-Name of the antibiotics and 
-veterinary drugs 
-Food 
-Tolerance limit 
-(mg/Kg) 
-(1) 
-(2) 
-(3) 
-(4) 
-Fat 
-0.15
+ADDvetVN  
+(Cuong et al., 2019)
 
-[3] SOURCE: FAO_AMU_Farm_Guidelines p.91
-Regional Guidelines on Monitoring and Surveillance of Antimicrobial Resistance, Use and Residues in Food and Agriculture – Volume 5 76 
- 
-Annex 6 Additional 
-information 
-on the use of 
-Defined Daily 
-Dose Animals 
-and Defined 
-Course Dose  
-Animals 
-Defined Daily Dose Animals (DDDAs) and 
-Defined Course Dose Animals (DCDAs) refer 
-to standardized dosages or doses of AASs 
-based on dosing practices of the veterinary 
-sector observed in the country of analysis. Of 
-note, the DDDAs defined by the ESVAC are 
-called DDDVets and are based on information 
-on doses from nine European Union Member 
-States (EMA, 2016). DDDAs are expressed in 
-mg/kg/day while DCDAs are expressed in 
-mg/kg.
+[2] SOURCE: FAO_AMU_Farm_Guidelines p.34 ⭐
+Objectives of antimicrobial use monitoring at the farm level   Chapter 3 19 
+Example 1: High-resolution monitoring of antimicrobial consum ption in Vietnamese small-scale chicken 
+farms highlights discrepancies between study metrics1 
+Method: Longitudinal study conducted from October 2016 to May 2018 in  
+102 small-scale farms. 
+Key findings: “A total of 180 products (76.2%) contained antimicrobials of critical importance according 
+to the WHO. Of those, 132 products (55.9%) contained antimicrobial active ingredients of critical 
+importance (‘highest priority’) and 91 products (38.5%) contained critically important (‘high priority’) 
+antimicrobials. The most common antimicrobial active ingredients used were colistin (25.8% of 
+products, 83.7% of flocks), followed by oxytetracycline (15.7%; 76.4%), tylosin (13.6%; 36.9%), 
+doxycycline (11%; 30%), and amoxicillin (10.2%; 24.6%).” In terms of treatment incidence, chickens in 
+this study consumed three times more than the global average levels (estimated in 138.0 doses per  1 
+000 chicken-days). 
+Example 2: Antimicrobials used in backyard and commercial poultry and swine farms in the Philippines: a 
+qualitative pilot study2 
+Method: Survey of 97 commercial and backyard poultry and swine farms in the Philippines. 
+Key findings: Highest priority, critically important antimicrobials were used in poultry and swine farms 
+including fluoroquinolones and colistin. Antimicrobial growth promoters (fosfomycin), deemed as a 
+reserve antimicrobial according to WHO’s Essential List of Medicines, were reportedly used on farms. 
+Overthe-counter access and lack of veterinary oversight in backyard farms were some of the drivers of 
+use. 
+Example 3: Antimicrobial use in pig production in Thailand3 
+Method: Survey of 84 smallholder and commercial pig farmers in Thailand. 
+Key findings: About half of 84 farmers (57.1%) reported using oral antibiotics (oral solution or adding 
+solution or powder to drinking water, excluding medicated feed) and injectable antibiotics for disease 
+prevention. Overall, about one-third of farmers (31%) reported using oral and injectable antibiotics in 
+the critically important antimicrobial (CIA) group. While 22.9% reported use of enrofloxacin (CIA highest 
+priority group), 39.6% reported use of amoxicillin (CIA high priority group). The actual consumption of 
+specific antimicrobials through medicated feed, despite it usually being a major source of antimicrobial 
+use, is unknown, as there was no package labelling the antimicrobial name and concentration at the 
+time of the survey. 
+Sources:
+
+[3] SOURCE: FAO_AMU_Farm_Guidelines p.10
+8. Advantages, limitations and examples of count-based, weight-b ased and   
+44  
+  
+dose-base indicators for AMU monitoring at the farm-level 
+Tables (Annex) 
+A6.1    DDDAs in mg/kg/day used for selected antimicrobial active substances   
+65  
+administered orally in chickens 
+Figures
+
+[4] SOURCE: FAO_AMU_Farm_Guidelines p.39
+Regional Guidelines on Monitoring and Surveillance of Antimicrobial Resistance, Use and Residues in Food and Agriculture – 
+Volume 5 24 
+As shown in Figure 2, all previously mentioned monitoring objectives produce information 
+that can be used to devise more efficient 
+interventions to support responsible and 
+prudent AMU through introduction of new 
+policies. Such policy interventions may consist 
+of new regulations, recommendations, 
+incentives or penalties to farmers, or voluntary 
+AMU reduction programmes. Because of the 
+granularity of the information generated by 
+farm-level AMU monitoring, interventions can 
+be better evidence-based, targeted and 
+prioritized, leading to more efficient action 
+against AMR. Box 6 provides a good illustration 
+of this in a case study from Canada. 
+BOX 6 
+Example of the use of farm-level AMU data to monitor and evaluate interventions to 
+rationalize the use of antimicrobials and adapt policies accordingly 
+AMU data and the assessment of the impact of the voluntary elimination of preventive use of 
+thirdgeneration cephalosporins on AMR in the poultry industry in Canada 
+Context: The emergence of bacteria resistant to third-generation cephalosporins from broiler chickens and 
+their products raised public health concerns. Resistance has been linked to the off-label use of third-
+generation cephalosporins in hatcheries. 
+Impact: Immediately after the first year of ceasing ceftiofur use at the hatchery (May 2014), resistance 
+to third-generation cephalosporins among chicken and human Salmonella Heidelberg isolates 
+substantially decreased. However, farm-level monitoring indicated that hatcheries have replaced 
+ceftiofur with other antimicrobials, gentamicin (labelled for use in chicks) or lincomycin-spectinomycin  
+(off-label use). The reported use corresponded with an increase in gentamicin-resistant E. coli and 
+Salmonella, an unintended consequence of the reduction strategy. Further implementation of an 
+industry AMU policy eliminating the use of certain antimicrobials (which include aminoglycosides and 
+aminocyclitols) resulted in a decrease in gentamicin-resistant E. coli and Salmonella. This highlights the 
+importance of ongoing monitoring of AMU to inform policy and further refinement of AMU reduction 
+strategies. 
+Sources: 
+PHAC. 2020. Canadian Integrated Program for Antimicrobial Resistance Surveillance (CIPARS) 2017: Integrated Findings. Available from: 
+https://publications.gc.ca/collections/collection_2020/aspc-phac/HP2-4-2017-eng-2.pdf 
+Huber, L., Agunos, A., Gow, S., Carson, C. & Van Boeckel, T.P.V. 2021. Reduction in Antimicrobial Use and Resistance to Salmonella, 
+Campylobacter, and Escherichia coli in Broiler Chickens, Canada, 2013–2019. Emerging Infectious Disease journal, 27(9): 2434. 
+https://doi.org/10.3201/eid2709.204395
+
+[5] SOURCE: FAO_AMU_Farm_Guidelines p.36
+Objectives of antimicrobial use monitoring at the farm level   Chapter 3 21 
+BOX 4 Examples where farm-level or sector-level AMU data provided context 
+to national sales data 
+Example 1: United Kingdom – Veterinary antibiotic sales and usage surveillance1 
+Antibiotic sales (Chapter 1 of UK-VARSS report): Antibiotic sales data in 2020 showed a 1% reduction in 
+overall sales of antimicrobials intended for use in production animals since 2019, although sales have 
+fallen 52% since 2014. The highest quantity sold were those belonging to tetracyclines (34%) and beta-
+lactams (27%). HP-CIA (defined as quinolones, third and fourth generation cephalosporins and 
+polymyxins) represented a small proportion of overall sales (0.5%) and have decreased 79% since 2014. 
+Antibiotic usage (Chapter 2 of UK-VARSS report): AMU data (of purchased, prescribed and/or 
+administered antimicrobials) in 2020, expressed in mg/kg (active ingredient/animal biomass) and 
+percentage of bird-days for laying hens, decreased in pigs, turkeys, broilers and laying hens compared to 
+2019 and increased slightly but remained low in ducks (at 2.6 mg/kg). However, increases of 15.8 mg/kg 
+and 4.2 mg/kg were seen in the salmon and trout sectors, which used 29.3 mg/kg and 13.2 mg/ kg, 
+respectively, in 2020. Patterns of use and top-ranking antimicrobial classes varied depending on the 
+animal species: for example, pigs (tetracyclines, penicillins, trimethoprim-sulfonamides), chicken, turkey 
+and duck (penicillins, tetracycline, lincosamides) and layers (tetracyclines, pleuromutilins, penicillins).  
+The industry sectors provided contextual statements on the data they provided to the programme (i.e., 
+recommended target levels for reduction, reasons for use).
 
 
-QUESTION: What is the recommended dosage for Colistin in Bovine adults?
+QUESTION: What is the exact withdrawal period for Amoxicillin in poultry according to the WHO AGISAR 2019 guidelines?

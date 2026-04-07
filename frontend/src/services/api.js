@@ -28,11 +28,16 @@ const api = {
             throw new Error(error.error || `HTTP error! status: ${response.status}`);
         }
 
+        // If blob is requested, return the blob instead of json
+        if (options.responseType === 'blob') {
+            return response.blob();
+        }
+
         return response.json();
     },
 
-    get(endpoint) {
-        return this.fetch(endpoint, { method: 'GET' });
+    get(endpoint, options = {}) {
+        return this.fetch(endpoint, { method: 'GET', ...options });
     },
 
     post(endpoint, data) {

@@ -1,14 +1,14 @@
 """
 LLM Query Router
 Classifies user intent before retrieval to prevent chunk mixing.
-Uses Gemini 2.0 Flash — free tier, fast, consistent JSON output.
+Uses Gemini 3.1 Flash Lite — free tier, fast, consistent JSON output.
 """
 
 import json
 import logging
-from google import genai
-from google.genai import types
+from openai import OpenAI
 from django.conf import settings
+from pydantic import BaseModel
 
 logger = logging.getLogger(__name__)
 
@@ -16,28 +16,20 @@ _client = None
 
 
 def _get_client():
-    """Lazy-loaded Gemini client singleton."""
+    """Lazy-loaded OpenAI client singleton."""
     global _client
     if _client is None:
-        api_key = settings.GEMINI_API_KEY
+        api_key = settings.OPENAI_API_KEY
         if not api_key:
-            logger.error("GEMINI_API_KEY not configured.")
+            logger.error("OPENAI_API_KEY not configured.")
             return None
-        _client = genai.Client(api_key=api_key)
+        _client = OpenAI(api_key=api_key)
     return _client
 
 
-ROUTER_RESPONSE_SCHEMA = {
-    "type": "object",
-    "properties": {
-        "intent": {
-            "type": "string",
-            "enum": ["regulatory", "pharmacokinetic", "out_of_scope"]
-        },
-        "confidence": {"type": "number"}
-    },
-    "required": ["intent", "confidence"]
-}
+class RouterResponse(BaseModel):
+    intent: str
+    confidence: float
 
 ROUTER_SYSTEM_PROMPT = """You are a query classifier for an antimicrobial usage (AMU) monitoring system.
 Classify the user query into exactly one of these categories:
@@ -53,28 +45,27 @@ Respond ONLY with valid JSON in this exact format (no explanation, no markdown, 
 
 def classify_query(query: str) -> dict:
     """
-    Classifies query intent using Gemini 2.0 Flash with strict JSON output.
+    Classifies query intent using OpenAI with strict JSON output via structured outputs.
     """
     client = _get_client()
     if not client:
         return {'intent': 'regulatory', 'confidence': 0.5}
 
     try:
-        response = client.models.generate_content(
-            model="gemini-2.0-flash",
-            contents=query,
-            config=types.GenerateContentConfig(
-                system_instruction=ROUTER_SYSTEM_PROMPT,
-                temperature=0.0,
-                max_output_tokens=60,
-                response_mime_type="application/json",
-                response_schema=ROUTER_RESPONSE_SCHEMA,
-            ),
+        response = client.beta.chat.completions.parse(
+            model=settings.OPENAI_MODEL,
+            messages=[
+                {"role": "system", "content": ROUTER_SYSTEM_PROMPT},
+                {"role": "user", "content": query}
+            ],
+            temperature=0.0,
+            max_tokens=60,
+            response_format=RouterResponse,
         )
-        parsed = json.loads(response.text)
+        parsed = response.choices[0].message.parsed
         return {
-            'intent': parsed.get('intent', 'regulatory'),
-            'confidence': float(parsed.get('confidence', 0.5))
+            'intent': parsed.intent,
+            'confidence': float(parsed.confidence)
         }
 
     except Exception as e:

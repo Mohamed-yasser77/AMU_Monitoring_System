@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Operator Intelligence Report</title>
+    <style>
+        @page {
+            size: a4 portrait;
+            @frame header_frame {           /* Static header */
+                -pdf-frame-content: header_content;
+                left: 50pt; width: 500pt; top: 30pt; height: 60pt;
+            }
+            @frame content_frame {          /* Content body */
+                left: 50pt; width: 500pt; top: 100pt; height: 680pt;
+            }
+            @frame footer_frame {           /* Static footer */
+                -pdf-frame-content: footer_content;
+                left: 50pt; width: 500pt; top: 790pt; height: 20pt;
+            }
+        }
+
+        body {
+            font-family: Helvetica, Arial, sans-serif;
+            font-size: 10pt;
+            color: #2D3748;
+        }
+
+        .header {
+            border-bottom: 2px solid #00C096;
+            padding-bottom: 10pt;
+        }
+
+        .header h1 {
+            color: #1A202C;
+            font-size: 22pt;
+            margin: 0;
+            padding: 0;
+            letter-spacing: -1px;
+        }
+
+        .header p {
+            font-size: 9pt;
+            color: #718096;
+            text-transform: uppercase;
+            letter-spacing: 2pt;
+            margin: 4pt 0 0 0;
+        }
+
+        .section-title {
+            font-size: 14pt;
+            font-weight: bold;
+            color: #1A202C;
+            border-left: 4pt solid #00C096;
+            padding-left: 8pt;
+            margin-top: 25pt;
+            margin-bottom: 15pt;
+        }
+
+        .insight-box {
+            background-color: #F0FFF4;
+            border: 1px solid #C6F6D5;
+            padding: 15pt;
+            border-radius: 8pt;
+            margin-bottom: 20pt;
+        }
+
+        .insight-label {
+            font-weight: bold;
+            color: #2F855A;
+            font-size: 9pt;
+            text-transform: uppercase;
+            margin-bottom: 5pt;
+            display: block;
+        }
+
+        .insight-text {
+            color: #276749;
+            font-style: italic;
+            line-height: 1.5;
+        }
+
+        .stats-grid {
+            width: 100%;
+            margin-bottom: 20pt;
+        }
+
+        .stat-card {
+            background-color: #F7FAFC;
+            border: 1px solid #E2E8F0;
+            padding: 12pt;
+            text-align: center;
+            border-radius: 6pt;
+        }
+
+        .stat-value {
+            font-size: 18pt;
+            font-weight: bold;
+            color: #00C096;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 8pt;
+            color: #718096;
+            text-transform: uppercase;
+            margin-top: 4pt;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20pt;
+        }
+
+        th {
+            background-color: #EDF2F7;
+            color: #4A5568;
+            font-size: 8pt;
+            text-align: left;
+            padding: 8pt;
+            text-transform: uppercase;
+            border-bottom: 1px solid #E2E8F0;
+        }
+
+        td {
+            padding: 8pt;
+            border-bottom: 1px solid #F7FAFC;
+            font-size: 9pt;
+        }
+
+        .status-badge {
+            padding: 2pt 6pt;
+            border-radius: 4pt;
+            font-size: 7pt;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .status-approved { background-color: #C6F6D5; color: #22543D; }
+        .status-pending { background-color: #FEEBC8; color: #744210; }
+        .status-rejected { background-color: #FED7D7; color: #822727; }
+
+        .category-hpcia { color: #E53E3E; font-weight: bold; }
+        .category-standard { color: #4A5568; }
+
+        .footer {
+            text-align: center;
+            font-size: 8pt;
+            color: #A0AEC0;
+            border-top: 1px solid #EDF2F7;
+            padding-top: 5pt;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="header_content" class="header">
+        <h1>Operator Strategic Report</h1>
+        <p>AMU Monitoring System — Professional Assessment</p>
+    </div>
+
+    <div id="footer_content" class="footer">
+        Generated on {{ report_date }} | Confidentially prepared for {{ operator_name }} | Page <pdf:pagenumber>
+    </div>
+
+    <div class="content">
+        
+        <div class="insight-box">
+            <span class="insight-label">Clinical Intelligence & Insights</span>
+            <p class="insight-text">
+                {{ ai_summary }}
+            </p>
+        </div>
+
+        <table class="stats-grid">
+            <tr>
+                <td>
+                    <div class="stat-card">
+                        <span class="stat-value">{{ total_farms }}</span>
+                        <span class="stat-label">Total Farms</span>
+                    </div>
+                </td>
+                <td>
+                    <div class="stat-card">
+                        <span class="stat-value">{{ total_animals }}</span>
+                        <span class="stat-label">Supervized Animals</span>
+                    </div>
+                </td>
+                <td>
+                    <div class="stat-card">
+                        <span class="stat-value">{{ compliance_rate }}%</span>
+                        <span class="stat-label">Compliance Rate</span>
+                    </div>
+                </td>
+                <td>
+                    <div class="stat-card">
+                        <span class="stat-value">{{ quarantine_count }}</span>
+                        <span class="stat-label">Under Quarantine</span>
+                    </div>
+                </td>
+            </tr>
+        </table>
+
+        <div class="section-title">Livestock Overview & Diversity</div>
+        <table style="width: 60%;">
+            <thead>
+                <tr>
+                    <th>Species Type</th>
+                    <th>Number of Flocks</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for species in species_distribution %}
+                <tr>
+                    <td>{{ species.name }}</td>
+                    <td>{{ species.count }} active cohorts</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="section-title">Antimicrobial Usage (Top Molecules)</div>
+        <table style="width: 50%;">
+            <thead>
+                <tr>
+                    <th>Molecule Name</th>
+                    <th>Usage Frequency</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for drug in top_drugs %}
+                <tr>
+                    <td>{{ drug.antibiotic_name }}</td>
+                    <td>{{ drug.count }} logs recorded</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="section-title">Critical Safety Alerts (Upcoming Harvests)</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Type</th>
+                    <th>Identifier</th>
+                    <th>Species</th>
+                    <th>Age</th>
+                    <th>Last Molecule</th>
+                    <th>Safe to Harvest In</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for alert in safety_alerts %}
+                <tr>
+                    <td>
+                        <span class="status-badge" style="background-color: {% if alert.type == 'FLOCK' %}#EBF8FF; color: #3182CE;{% else %}#FAF5FF; color: #805AD5;{% endif %}">
+                            {{ alert.type }}
+                        </span>
+                    </td>
+                    <td>{{ alert.tag }}</td>
+                    <td>{{ alert.species }}</td>
+                    <td>{{ alert.age }} weeks</td>
+                    <td>{{ alert.molecule }}</td>
+                    <td>
+                        <span class="status-badge status-rejected">{{ alert.days_left }} Days</span>
+                    </td>
+                </tr>
+                {% endfor %}
+                {% if not safety_alerts %}
+                <tr>
+                    <td colspan="5" style="text-align: center; color: #A0AEC0;">No active withdrawal periods detected for managed cohorts.</td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+
+        <pdf:nextpage />
+
+        <div class="section-title">Detailed Stewardship Log (Recent Activity)</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Target</th>
+                    <th>Molecule</th>
+                    <th>Dosage</th>
+                    <th>Reason</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in recent_log %}
+                <tr>
+                    <td>{{ log.date }}</td>
+                    <td>{{ log.target }}</td>
+                    <td>{{ log.drug }}</td>
+                    <td>{{ log.dosage }}</td>
+                    <td>{{ log.reason }}</td>
+                    <td>
+                        <span class="status-badge status-{{ log.status }}">{{ log.status }}</span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div style="margin-top: 40pt;">
+            <p style="font-size: 7pt; color: #718096; line-height: 1.4;">
+                <strong>Notice:</strong> This report is generated by the AMU Intelligence Engine. Data is based on treatment logs entered by Data Operators and approved by licensed Veterinarians. Always verify physical flock status before harvesting. This document is intended for professional use and regulatory compliance tracking.
+            </p>
+        </div>
+
+    </div>
+</body>
+</html>

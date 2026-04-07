@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import VetSidebar from '../components/vet/Sidebar'
 import api from '../services/api'
@@ -68,7 +68,7 @@ function VetDashboard() {
   })
 
   const navigate = useNavigate()
-  const user = JSON.parse(localStorage.getItem('user'))
+  const user = useMemo(() => JSON.parse(localStorage.getItem('user')), [])
 
   const states = [
     "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Goa", "Gujarat",
@@ -122,7 +122,7 @@ function VetDashboard() {
     // Auto-refresh data every 30 seconds for real-time request tracking
     const interval = setInterval(fetchData, 30000)
     return () => clearInterval(interval)
-  }, [navigate, user, fetchData])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Fetch flocks when farm is selected in prescription form
   useEffect(() => {
@@ -595,9 +595,14 @@ function VetDashboard() {
                       >
                         <option value="" className="bg-slate-900">Entire Flock</option>
                         {animals.map(animal => (
-                          <option key={animal.id} value={animal.id} className="bg-slate-900">{animal.animal_tag}</option>
+                          <option key={animal.id} value={animal.id} className="bg-slate-900">{animal.animal_tag} ({animal.age_in_weeks}w)</option>
                         ))}
                       </select>
+                      {prescriptionForm.animal_id && (
+                        <p className="text-[9px] text-teal-accent/70 mt-1 uppercase font-bold tracking-tighter italic">
+                          Selected Animal: {animals.find(a => a.id == prescriptionForm.animal_id)?.age_in_weeks} weeks old
+                        </p>
+                      )}
                     </div>
 
                     <div className="space-y-2">
@@ -787,6 +792,12 @@ function VetDashboard() {
                     <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Target</p>
                     <p className="text-sm font-medium text-white">
                       {selectedTreatment?.animal__animal_tag ? `Animal: ${selectedTreatment.animal__animal_tag}` : `Flock: ${selectedTreatment?.flock__flock_tag || 'Unknown'}`}
+                    </p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Age (Weeks)</p>
+                    <p className="text-sm font-medium text-teal-accent">
+                      {selectedTreatment?.animal__age_in_weeks ?? selectedTreatment?.flock__age_in_weeks ?? '--'}
                     </p>
                   </div>
                   <div className="space-y-1">

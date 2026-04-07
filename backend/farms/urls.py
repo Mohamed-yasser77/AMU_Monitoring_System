@@ -8,6 +8,7 @@ from .views import (
     BulkFlockCreateView,
     AnimalListCreateView,
     ProblemListCreateView,
+    OperatorReportView,
 )
 
 urlpatterns = [
@@ -19,4 +20,5 @@ urlpatterns = [
     path('flocks/', FlockListCreateView.as_view(), name='flock-list-create'),
     path('animals/', AnimalListCreateView.as_view(), name='animal-list-create'),
     path('problems/', ProblemListCreateView.as_view(), name='problem-list-create'),
+    path('operator-report/', OperatorReportView.as_view(), name='operator-report'),
 ]

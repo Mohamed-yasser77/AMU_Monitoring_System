@@ -8,6 +8,7 @@ import {
     ChevronRight,
     LayoutGrid
 } from 'lucide-react';
+import api from '../../services/api';
 
 const Sidebar = ({ activeTab, setActiveTab, userName, onLogout }) => {
     const [clickEffect, setClickEffect] = React.useState(null);
@@ -20,10 +21,38 @@ const Sidebar = ({ activeTab, setActiveTab, userName, onLogout }) => {
         { id: 'treatments', label: 'Treatments', icon: AlertCircle },
     ];
 
+    const [isDownloading, setIsDownloading] = React.useState(false);
+
     const handleTabClick = (id) => {
         setClickEffect(id);
         setActiveTab(id);
         setTimeout(() => setClickEffect(null), 600);
+    };
+
+    const handleDownloadReport = async () => {
+        setIsDownloading(true);
+        try {
+            const blob = await api.get('/operator-report/', {
+                responseType: 'blob'
+            });
+            
+            // blob is already a Blob object from our updated api.js
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `AMU_Strategic_Report_${new Date().toISOString().split('T')[0]}.pdf`);
+            document.body.appendChild(link);
+            link.click();
+            
+            // Clean up
+            link.remove();
+            window.URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error('Failed to download report:', error);
+            alert(`Error: ${error.message || 'Could not generate report. Please verify your internet connection and try again.'}`);
+        } finally {
+            setIsDownloading(false);
+        }
     };
 
     return (
@@ -78,8 +107,12 @@ const Sidebar = ({ activeTab, setActiveTab, userName, onLogout }) => {
                 <div className="mt-12 p-5 rounded-lg bg-teal-accent/5 border border-teal-accent/10 relative overflow-hidden group">
                     <div className="relative z-10">
                         <p className="text-[11px] font-bold text-white leading-relaxed mb-4">Get summary report now</p>
-                        <button className="p-2 bg-teal-accent text-[#14171a] rounded-xl hover:scale-110 transition-transform">
-                            <ChevronRight size={18} strokeWidth={3} />
+                        <button 
+                            onClick={handleDownloadReport}
+                            disabled={isDownloading}
+                            className={`p-2 bg-teal-accent text-[#14171a] rounded-xl hover:scale-110 transition-transform ${isDownloading ? 'opacity-50 cursor-wait animate-pulse' : ''}`}
+                        >
+                            <ChevronRight size={18} strokeWidth={3} className={isDownloading ? 'animate-spin' : ''} />
                         </button>
                     </div>
                     <div className="absolute -right-4 -bottom-4 opacity-5 transform rotate-12 group-hover:scale-110 transition-transform">

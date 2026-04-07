@@ -8,8 +8,7 @@ import os
 import re
 import json
 import logging
-from google import genai
-from google.genai import types
+from openai import OpenAI
 from django.conf import settings
 from pydantic import BaseModel
 from typing import Optional
@@ -30,8 +29,9 @@ RULES:
 1. ONLY USE THE PROVIDED CONTEXT. If the answer is not in the context, clearly state what information is missing.
 2. EXACT QUOTES: For every claim you make, you MUST provide the exact sentence(s) from the context that supports it. These must be VERBATIM.
 3. BE HELPFUL WITH TERMINOLOGY: Explain distinctions (e.g., "very highly important" vs "Highest Priority Critically Important").
-4. NO HALLUCINATION: If no relevant information exists, state that clearly in the answer.
-5. OUTPUT: Provide structured JSON matching the requested schema.
+4. KEYWORD MATCHES: Some chunks may be marked with "⭐". These chunks contain exact keyword matches for your query—pay special attention to them.
+5. NO HALLUCINATION: If no relevant information exists, state that clearly in the answer.
+6. OUTPUT: Provide structured JSON matching the requested schema.
 """
 
 
@@ -108,9 +108,9 @@ def generate_response(query: str, chunks: list[dict], max_similarity: float) -> 
             'grounding_passed': True,
         }
 
-    api_key = settings.GEMINI_API_KEY
+    api_key = settings.OPENAI_API_KEY
     if not api_key:
-        logger.error("GEMINI_API_KEY is not configured in settings.")
+        logger.error("OPENAI_API_KEY is not configured in settings.")
         return {
             'answer': 'AI service is not configured. Please contact the administrator.',
             'confidence': 0.0,
@@ -118,7 +118,7 @@ def generate_response(query: str, chunks: list[dict], max_similarity: float) -> 
             'flagged_for_review': True,
             'grounding_passed': False,
         }
-    client = genai.Client(api_key=api_key)
+    client = OpenAI(api_key=api_key)
 
     context_block = _build_context_block(chunks)
 
@@ -133,32 +133,31 @@ QUESTION: {query}"""
             f.write(f"USER MESSAGE:\n{user_message}\n")
 
     try:
-        response = client.models.generate_content(
-            model=settings.GEMINI_MODEL,
-            contents=user_message,
-            config=types.GenerateContentConfig(
-                system_instruction=SYNTHESIS_SYSTEM_PROMPT,
-                temperature=0.1,
-                max_output_tokens=1024,
-                response_mime_type="application/json",
-                response_schema=RegulatoryResponseSchema,
-            ),
+        response = client.beta.chat.completions.parse(
+            model=settings.OPENAI_MODEL,
+            messages=[
+                {"role": "system", "content": SYNTHESIS_SYSTEM_PROMPT},
+                {"role": "user", "content": user_message}
+            ],
+            temperature=0.1,
+            max_tokens=1024,
+            response_format=RegulatoryResponseSchema,
         )
-        data = json.loads(response.text)
-        answer_text = data.get('answer', '').strip()
-        quotes = data.get('supporting_quotes', [])
+        data = response.choices[0].message.parsed
+        answer_text = data.answer.strip()
+        quotes = data.supporting_quotes
+        source_docs = data.source_documents
+        ai_confidence = data.confidence_score
 
         # Hard Grounding: Verify quotes and numbers
         grounding_passed, ungrounded_items = _grounding_check(answer_text, chunks, quotes)
         
         # Self-assessment check: if AI says confidence is low, flag it
-        ai_confidence = data.get('confidence_score', 1.0)
         flagged = not grounding_passed or max_similarity < CONFIDENCE_THRESHOLD or ai_confidence < 0.7
-
         return {
             'answer': answer_text,
             'confidence': round(max_similarity, 4),
-            'source': ', '.join(data.get('source_documents', ['Unknown'])),
+            'source': ', '.join(source_docs) if source_docs else 'Unknown',
             'flagged_for_review': flagged,
             'grounding_passed': grounding_passed,
             'ungrounded_items': ungrounded_items,

@@ -167,8 +167,8 @@ CSRF_TRUSTED_ORIGINS = [
 ]
 
 # AI / RAG Settings
-GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
-GEMINI_MODEL = os.getenv('GEMINI_MODEL', 'gemini-1.5-flash')
+OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
+OPENAI_MODEL = os.getenv('OPENAI_MODEL', 'gpt-4o-mini')
 CHROMA_PERSIST_DIR = os.path.join(BASE_DIR, 'ai', 'vectorstore')
 AI_RATE_LIMIT_PER_DAY = 20
 

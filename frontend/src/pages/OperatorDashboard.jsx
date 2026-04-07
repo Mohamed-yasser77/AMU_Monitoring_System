@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/operator/Sidebar';
 import SearchableTable from '../components/operator/SearchableTable';
@@ -49,7 +49,7 @@ const OperatorDashboard = () => {
     const [highlightedTreatmentId, setHighlightedTreatmentId] = useState(null);
 
     const navigate = useNavigate();
-    const user = JSON.parse(localStorage.getItem('user'));
+    const user = useMemo(() => JSON.parse(localStorage.getItem('user')), []);
 
     const fetchData = useCallback(async () => {
         if (!user) return;
@@ -78,7 +78,7 @@ const OperatorDashboard = () => {
         } finally {
             setLoading(false);
         }
-    }, [user]);
+    }, []); // user is stable via useMemo — no dependency needed
 
     useEffect(() => {
         if (!user) { navigate('/login'); return; }
@@ -89,7 +89,7 @@ const OperatorDashboard = () => {
         // Auto-refresh data every 30 seconds to update safety status in real-time
         const interval = setInterval(fetchData, 30000);
         return () => clearInterval(interval);
-    }, [user, user?.role, navigate, fetchData]);
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps — user & fetchData are stable
 
     const handleLogout = () => {
         localStorage.removeItem('user');
